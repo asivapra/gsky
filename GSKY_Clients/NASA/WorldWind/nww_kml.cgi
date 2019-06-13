@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # Created on 31 Mar, 2019
-# Last edit: 3 Apr, 2019
+# Last edit: 12 Jun, 2019
 # By Dr. Arapaut V. Sivaprasad
 =pod
 This CGI is for creating the KMLs for displaying the GSKY layers via Google Earth Web.
@@ -146,11 +146,12 @@ sub CreateSingleKML
 {
 	my $x = ($east+$west)/2.0;
 	my $y = ($north+$south)/2.0;
+	my $eye = abs($south - $north)*150*1000;
 	$lookAt = "
 		<LookAt>
 			<longitude>$x</longitude>
 			<latitude>$y</latitude>
-			<altitude>350e3</altitude>
+			<altitude>$eye</altitude>
 		</LookAt>
 	";
 	$kml = "<GroundOverlay>
@@ -257,20 +258,21 @@ sub GetPlacemark
 #p($tempfile);
 		my $xml_doc = $parser->parsefile ($tempfile);
 		$xml_hash = $xml_converter->fromDOMtoHash($xml_doc);
-		my $name = " ";
+		my $name = $blank_name;
 		if ($shownames && $xml_hash->{Placemark}->{ExtendedData}->{Data}[0]->{name} eq "name")
 		{
 			$name = $xml_hash->{Placemark}->{ExtendedData}->{Data}[0]->{value}->{text};	
 		}
-		if ($include_named_only && $name eq " ") { next; }
-		if ($include_unnamed_only && $name ne " ") { next; }
+		if ($include_named_only && $name eq $blank_name) { next; }
+		if ($include_unnamed_only && $name ne $blank_name) { next; }
 #print  "$j of $len\n";	
 		if ($polygon)
 		{
+			$nplacemark++;
 			$placemark .= "<Placemark>\n" . 
 				"\t\t\t<name>$name</name>\n" . 
 				"\t\t\t<visibility>1</visibility>\n" .
-				"\t\t\t<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>1</fill></PolyStyle></Style>\n" . 
+				"\t\t\t<Style><LineStyle><color>$outline</color></LineStyle><PolyStyle><fill>1</fill></PolyStyle></Style>\n" . 
 				"\t\t\t<MultiGeometry><Polygon>$polygon</Polygon></MultiGeometry>\n" . 
 				"\t\t</Placemark>\n\t\t";
 		}
@@ -322,15 +324,29 @@ sub GetAndCreatePlacemarks
 	`tokml $geojsonfile > $kmlfile`;
 #p("	`/var/www/cgi-bin/xml_to_hash.pl $txtfile`;");
 #	`perl /var/www/cgi-bin/xml_to_hash.pl $txtfile`;
-	 $placemark = GetPlacemark($kmlfile);
-	 $overlay .= "
-	<Folder>
-		<name>$overlay_name</name>
-		<visibility>1</visibility>
-		$lookAt
-		$placemark
-	</Folder>
-	 ";
+	$nplacemark = 0;
+	$placemark = GetPlacemark($kmlfile);
+	if ($placemark)
+	{
+		 $overlay .= "
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>1</visibility>
+			$lookAt
+			$placemark
+		</Folder>
+		 ";
+	}
+	else
+	{
+		 $overlay .= "
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>0</visibility>
+		</Folder>
+		 ";
+	}
+	
 }
 sub GetTheOverlays
 {
@@ -338,13 +354,15 @@ sub GetTheOverlays
 	my $len = $#key_value_pairs;
 	for ($j=0; $j <= $len; $j++)
 	{
+		$outline = $outlines[$j];
+#p("outline = $outline");		
 		GetAndCreatePlacemarks($key_value_pairs[$j]);
 	}
 #	my $geoglam = GetGeoglam;
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
-	<name>______Grouped Layers_______</name>
+	<name>______Layers_______</name>
 	$kml
 	$overlay
 	<Folder>
@@ -1096,6 +1114,8 @@ $ct0 = time();
 $shownames = 1; # Set this to 0 to suppress the names of lakes
 $include_named_only = 0; # Do not show unnamed lakes
 $include_unnamed_only = 0; # Do not show unnamed lakes
+$blank_name = " ";
+@outlines = ("ff00ff00","ff0000ff","ffff0000","ff00ffff","ff008000","ff800000","ff00ffff");
 &do_main;
 =pod
 Cache location: C:\Users\avs29\AppData\Local\Google\Chrome\User Data\Default\Cache
