@@ -22,7 +22,7 @@ else url = 'm_geoglam.html';
 .content-container article {
 	float: left;
 	width: 50%;
-	height: 300px;
+	height: 320px;
 	padding: 20px;
 	background: #fff;
 	border: 1px solid #e7e6eb;
@@ -34,6 +34,7 @@ else url = 'm_geoglam.html';
 .content-container tldr {
 	float: right;
 	width: 100%;
+	height: 100%;
 	padding: 20px;
 	background: #fff;
 	border: 1px solid #e7e6eb;
@@ -65,23 +66,30 @@ else url = 'm_geoglam.html';
 .auto-style2 {
 	font-weight: normal;
 }
+.auto-style3 {
+	color: #FF0000;
+}
+.auto-style4 {
+	color: #FF0000;
+	font-weight: bold;
+}
 </style>
 </head>
-<body background="/images/bg-page.png">
+<body style="background-image:url('/images/bg-page.png')">
 <div class="container">
     <table class="jumbotron hidden-xs" style="width:100%">
 		<tr>
 			<td style="width:20%">
-				<img src="https://nci.org.au/wp-content/uploads/2018/09/NCI-Australia-and-Text-website-2-2.png" style="width:300px">
+				<a href="https://nci.org.au//" target="_blank"><img alt="NCI" src="https://nci.org.au/wp-content/uploads/2018/09/NCI-Australia-and-Text-website-2-2.png" style="width:300px">
 			</td>
 			<td style="text-align:right">
-				<img src="https://gsky.nci.org.au/img/logo.svg" width="150">
+				<a href="https://gsky.nci.org.au" target="_blank"><img alt="GSKY" src="https://gsky.nci.org.au/img/logo.svg" width="150"></a>
 				<h5>Powered by: <b>
 				GSKY </b> <span class="auto-style2">from</span><b> NCI</b> and 
 				<span class="auto-style1">NASA</span></h5>
 			</td>
 			<td style="text-align:right">
-				<img src="https://worldwind.arc.nasa.gov/img/nasa-logo.svg" width="100"> 
+				<a href="https://worldwind.arc.nasa.gov/" target="_blank"><img alt="NASA WorldWind" src="https://worldwind.arc.nasa.gov/img/nasa-logo.svg" width="100"></a>
 			</td>
 			<td nowrap>
 				<h3>GskyNWW:- <b>GEOGLAM</b></h3>
@@ -92,7 +100,7 @@ else url = 'm_geoglam.html';
 			</td>
 		</tr>
     </table>
-    <div>
+	<span style="cursor:pointer; text-decoration:underline" onmousedown="DisplayNWW()"><img alt="NWW" src="/images/nww.png" title="Open/Close the NASA World Wind Pane"></span>
 	<div id="nww_section" style="display:none">
 		<iframe id="NWW" style="width:100%; height:710px"></iframe>
 	</div>
@@ -103,68 +111,122 @@ else url = 'm_geoglam.html';
 		        <section>
 		        <h3>What's This?</h3>
 		        <p>
-		        This page will create the JS and KML files required to display the GEOGLAM layers in <b>NASA World Wind</b>. Both temporal and spatial dimensions are possible.
-		        Also possible is to overlay the GSKY layers with other terrain features like water, scrub, wetland, etc. 
+		        This page will create the JS and KML files required to display the GEOGLAM layers in <b>NASA World Wind</b>. Both temporal and spatial dimensions can be specified.
+		        It is possible to overlay the GSKY layers with other terrain features like water, scrub, forest, wetland, etc. 
+		        <br>
 		        </p>
 				</section>
+			    <details>
+			        <section>
+			        <div style="font-size:12px">
+			        <p>
+			        The objective of this web app is to display the GSKY layers with other data so that it may make more sense than seeing the GSKY layer alone. For example, the GEOGLAM vegetative
+			        cover may be more meaningful if overlaid with forests, grassland, sand, water bodies, etc. 
+			        </p>
+		   	        <p>
+					QGIS provides this functionality through 'QuickOSM', but somewhat complex manual settings are required. 
+			        In this app we are trying to make it a smooth process of just selecting a few params and let the app do the work. 
+			        </p>
+		   	        <p>
+			        <i>The usefulness of this process must be ascertained before presenting it to the end users.</i>
+			        </p>
+			        <p>
+			        It is designed to combine the power of GSKY with NASA World Wind (<b>NWW</b>) and uses the data from <a href="https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_API_by_Example">Overpass</a> for the overlays. 
+			        This web app is unique in its capability. 
+			        </p>
+			        <p>
+			        It uses Keyhole Markup Language (KML) which was originally developed for Google Earth, and called Keyhole Earth Viewer,
+			        to bind together the various layers. Unlike TerriaMap, ArcGIS or QGIS, the NWW does not have a native WMS facility. The KML simulates this functionality to call GSKY.
+			        </p>
+			        <p>
+			        NWW provides the engine to display the globe, which in turn comes from Bing, and layers. 
+			        </p>
+			        <p>
+					The overlays are third party data coming from the <a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> organisation using the APIs to 
+					overpass. 
+					</p>
+		
+					</div>
+					</section>
+				</details>
 			</tldr>			
 		</article>
 		</div>
 	    <div class="content-container" style="font-size:small">
 	    <article>
 	        <tldr>
-		        <h3>How to create the KML File:</h3>
-		        <ul>
-		        <li>
-		        	Choose the required GEOGLAM layer.
-		        </li>
-		        <li>
-		        	Choose the geographical region or enter a BBox. 
-		        </li>
-		        <li>
-		        	Choose the data acquisition date(s). 
-		        </li>
-		        <li>
-		        	Click '<b>Display</b>'.
-		        </li>
-		        </ul>
+		        <h3>Purpose</h3>
+		        <p>
+				GSKY provides a WMS interface to display the satellite and geospatial data in both temporal and spatial dimensions. 
+				Such data may convey more meaning if combined with other data. In this app, the GEOGLAM vegetative
+		        cover can be overlaid with forests, grassland, sand, water, etc. so that the display may make more sense.
+				<br>&nbsp;
+				</p>
+
+			    <details>
+			        <section>
+				        <h3>How to Run:</h3>
+				        <ul>
+				        <li>
+				        	Choose the required GEOGLAM layer.
+				        </li>
+				        <li>
+				        	Choose the data acquisition date. 
+				        </li>
+				        <li>
+				        	Choose a listed region, enter a BBox or place the crosshair. 
+				        </li>
+				        <li>
+				        	Choose one or more overlays as key/value pairs. 
+				        </li>
+				        </ul>
+				        <h3>Fine Details:</h3>
+			        	<ul>
+							<li>
+								<small>Use the <b>BBox Finder</b> to draw a bounding box and click the paste (<img alt="Paste" src="/images/copy_paste.png" width="20px">) button.</small>
+							</li>
+							<li>
+								<small>Or, locate the crosshair at a required spot and click the crosshair (<img alt="Paste" src="/images/crosshair.png" width="20px">) button.</small>
+								<ul>
+									<li><small>The dropdown defines the BBox limits (units of 0.2&deg; for X and Y)</small></li>
+								</ul>
+							</li>
+							<li>
+								<small>The World Wind pane will open to show the globe.</small>
+								<ul>
+									<li><small>Click one of the links on the navigation pane on left to go to the layers. </small></li>
+								</ul>
+							</li>
+							<li>
+								<small>The GSKY layer plus the overlay(s) will be shown on the map.</small>
+								<ul>
+									<li><small>You can turn on/off any layer in the navigation pane.</small></li>
+							        <li>
+							        	<small><span class="auto-style4">Note:</span><span class="auto-style3"> multiple overlays on a large area may freeze the World Wind engine.</span></small>
+							        </li>
+								</ul>
+							</li>
+			        	</ul>
+					</section>
+				</details>
 			</tldr>
-	    <details>
-	        <section>
-	        	<ul>
-					<li>
-		        		<small>Choose '<b>Unlisted</b>' to manually enter its BBox.</small>
-					</li>
-					<li>
-						<small>Use the <b>BBox Finder</b> to get the bounding box.</small>
-					</li>
-					<li>
-						<small>Select multiple dates with Ctrl-click or Shift-click.</small>
-					</li>
-					<li>
-							<small>Open it via the <b>
-							<img src="/images/my_places.png" alt="My Places" title="My Places"> My Places | IMPORT KML FILE</b> link in <b><a href="https://earth.google.com/web/">GEWeb</a></b></small>.
-					</li>
-	        	</ul>
-			</section>
-		</details>
-	    </div>
 		</article>		
 		</div>
 	</div>
-	<div align="center" style="text-align:left; width:100%">
-	<form id="google_earth" name="google_earth" method="POST" action="google_earth.cgi">
+	<div style="text-align:left; width:100%">
+<!--	<form id="google_earth" name="google_earth" method="POST" action="google_earth.cgi">-->
+	<form id="google_earth" name="google_earth">
     <table class="jumbotron hidden-xs-" style="width:100%">
 		<tr>
 			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px" rowspan="7">
-				<img src="/images/geoglam_australia.png" alt="GEOGLAM">
+				<span style="cursor:pointer; text-decoration:underline" onmousedown="DisplayNWW()"><img id="main_image" src="/images/geoglam_fractional_cover.png" alt="GEOGLAM" title="Open/Close the NASA World Wind Pane"></span>
 			</td>
 			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px;">
 				Layer:
 			</td>
 			<td style="width:80%; padding-top:0px; ">
-				<select name="layer" style="width:300px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this)">
-					<option value="global:c6:frac_cover|Fractional Cover C6">GEOGLAM</option>
+				<select name="layer" style="width:300px; height:25px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this)">
+					<option value="global:c6:frac_cover|Fractional Cover C6">GEOGLAM - Fractional Cover C6</option>
 					<option value="global:c6:frac_cover|Fractional Cover C6">Fractional Cover C6</option>
 					<option value="global:c6:total_cover|Total Cover C6">Total Cover C6</option>
 					<option value="global:c6:monthly_frac_cover|Monthly Fractional Cover C6">Monthly Fractional Cover C6</option>
@@ -173,13 +235,25 @@ else url = 'm_geoglam.html';
 					<option value="global:c6:monthly_anom_frac_cover|Anomaly Fractional Cover C6">Anomaly Fractional Cover C6</option>
 				</select>
 			</td>
+			<td rowspan="7" style="background-color:auto; vertical-align:top">
+				<span id="n_tiles" style="display:none; width:210px;">&nbsp;</span>
+			</td>
 		</tr>
 		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
+			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px">
+				Date:
+			</td>
+			<td style="width:80%; height:25px; padding-top:10px; white-space:nowrap">
+				<span id="times" style="display:block;">
+				<select name="time" style="width:300px; height:50px; background-color:#F7F5D7" multiple="multiple"><option value="">Latest</Option></select></span>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:20%; height:25px; text-align:right; font-weight:bold; padding:10px">
 				Region:
 			</td>
 			<td style="width:80%; padding-top:0px">
-				<select name="region" style="width:300px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
+				<select name="region" style="width:300px; height:25px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
 					<option value=""></option>
 					<option value="UNLISTED" selected="selected">Unlisted</option>
 					<option value="Australia">Australia</option>
@@ -203,32 +277,24 @@ else url = 'm_geoglam.html';
 			</td>
 		</tr>
 		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px">
+			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				BBox:
+				<span onmousedown="BlankBboxInputBox(document.forms.google_earth.bbox)">
+				<img src="/images/sm_cross.png" alt="Blank Input" style="cursor:pointer" title="Blank the BBox value"></span>
 			</td>
 			<td style="width:80%; padding-top:10px">
 			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:12px;" value="135.703125,-29.840644,138.339844,-26.745610"> 
-			<span onmousedown="BlankBboxInputBox(document.forms.google_earth.bbox)">
-			<img src="/images/sm_cross.png" alt="Blank Input" title="Blank the BBox value"></span>
-			<img src="/images/bbox_finder_1.png" height="25" alt="BBox Finder" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)" width="40">
-			<img src="/images/copy_paste.png" width="20px" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
+			<img src="/images/bbox_finder_1.png" height="25" alt="BBox Finder" style="cursor:pointer" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)" width="40">
+			<img src="/images/copy_paste.png" width="20px" style="cursor:pointer" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
 			</td>
 		</tr>
 		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px">
-				Date:
-			</td>
-			<td style="width:80%; padding-top:10px; white-space:nowrap">
-				<span id="times" style="display:block;"><select name="time" style="width:300px; background-color:#F7F5D7"><option value="">Latest</Option></select></span>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; font-size:12px; padding-right:10px">
+			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				Crosshair:
 			</td>
 		<td style="white-space:nowrap">
-					<input type="text" name="crosshair" style="width:300px; font-size:12px; background-color:#F7F5D7" title="Move the crosshair into position or manually enter W,S coordinates.">
-					<select name="zoom_size" title="Number of tiles around the crosshair" class="auto-style1">
+					<input type="text" name="crosshair" style="width:300px; font-size:12px; background-color:#F7F5D7; border-bottom-style:none" title="Move the crosshair into position or manually enter W,S coordinates.">
+					<select name="zoom_size" style="height:23px" title="Number of tiles around the crosshair" class="auto-style1">
 						<option value="1">1</option>
 						<option value="5">5</option>
 						<option value="10" selected="selected">10</option>
@@ -236,32 +302,37 @@ else url = 'm_geoglam.html';
 						<option value="20">20</option>
 						<option value="25">25</option>
 					</select>&nbsp;
-					<img src="/images/zoom_1.png" alt="Zoom" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair();">
+					<img src="/images/crosshair.png" alt="Crosshair" style="cursor:pointer" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair();">
 		</td>
 		</tr>
 		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; font-size:12px; padding:10px">
-				Label:
-			</td>
-		<td>
-					<input type="text" name="region_title" title="Label for the crosshair point" style="width:300px; font-size:12px; background-color:#F7F5D7">
-		</td>
-		</tr>
-		<tr>
-			<td style="width:20%; text-align:right; font-weight:bold; font-size:12px; padding:10px">
+			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				Overlay(s):
+				<span onmousedown="BlankOverlaysInputBox(document.forms.google_earth.key_value_pairs)">
+				<img src="/images/sm_cross.png" alt="Blank Selection" style="cursor:pointer" title="Delete the selected overlays"></span>
 			</td>
-		<td>
+		<td style="white-space:nowrap">
 			<select name="key" onchange="FillTheValues(this)" style="height:20px; width:148px; background-color:#F7F5D7">
 				<option value="">key</option>
 				<option value="natural">natural</option>
+				<option value="building">building</option>
+				<option value="evacuation_center">evacuation_center</option>
+				<option value="highway">highway</option>
+				<option value="historic">historic</option>
+				<option value="junction">junction</option>
+				<option value="landuse">landuse</option>
 			</select>
-			<span id="key_values"></span>
-			<span id="selected_key_values" style="display:none"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7">natural|water</textarea></span>
+			<span id="key_values">
+				<select name="key_values" style="height:20px; width:148px; background-color:#F7F5D7">
+					<option value="">values</option>
+				</select> 
+			</span>
+			<span id="selected_key_values" style="display:block"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7"></textarea></span>
 		</td>
 		</tr>
 		<tr>
-			<td style="width:100%; text-align:right; font-weight:bold; padding-right:10px" colspan="2">
+			<td>&nbsp;</td>
+			<td style="width:100%; text-align:left; font-weight:bold; padding-right:10px" colspan="2">
 				<input type="button" value="Display" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
 				<span id="kml" style="display: none"></span>
 				<span id="killed" style="display: none"></span>
@@ -277,7 +348,7 @@ else url = 'm_geoglam.html';
 		<img src="/images/cross.png" alt="Close" title="Close BBox Finder" onclick="ShowHideBBoxFinder(document.BBox_finder)"></span><br>
 		<iframe id="BBox_finder" style="width:100%; height:600px"></iframe>
 	</div>
-    <div class="content-container" id="Details" style="display:block">
+    <div class="content-container" id="Details" style="display:none">
     <details>
         <section>
 		<h2>Details</h2>
@@ -333,27 +404,17 @@ else url = 'm_geoglam.html';
         </ul>
         </li>
         </ul>
-
-</span>        
-        
-        
-    </small>
-		</td>
-		</tr>
-    </table>
 		</section>
 	</details>
 	</div>
-<small><small>
 <hr>
+<small><small>
 Copyright &copy; 2019, National Computational Infrastructure (<a href="http://nci.org.au/">NCI</a>), Canberra, ACT 2601, Australia.
-
 Author: Dr. Arapaut V. Sivaprasad. Created on: 29 May, 2019.
 </small></small>
 <hr>
-    </div>
 </div>
-<script src="/nww_kml_ajax.js"></script>
-</script>
+<script src="/NASA/WorldWind/nww_kml_ajax.js"></script>
+</div>
 </body>
 </html>

@@ -11,6 +11,15 @@
   // Copyright (c) 2011-2019 by AV Sivaprasad and WebGenie Software Pty Ltd.
 // Global variables
 var cgi = "/cgi-bin/nww_kml.cgi"; 
+function DisplayNWW()
+{
+	var rand = Math.floor((Math.random()*1000000)+1);
+	var iframe = document.getElementById('NWW');
+	iframe.src = "http://130.56.242.19/NASA/WorldWind/dea_kml.html?"+rand;
+//	showHideToggle('top_section', 'div'); 
+	showHideToggle('nww_section', 'div'); 
+}
+
 function GetKeyValuePairs(form,item)
 {
 	var key_value_pair = form.key.value + "|" + item.value;
@@ -22,8 +31,15 @@ function FillTheValues(item)
 	if (!item.value) { return; }
 	var key_values = [];
 	key_values["natural"] = ["bay","beach","cave_entrance","cliff","crater","fell","fumarole","glacier","grassland","heath","mud","peak","saddle","sand","scree","scrub","spring","stone","tree","tree_row","volcano","water","wetland","wood"];
+	key_values["boundary"] = ["national_park","maritime","protected_area","administrative"];
+	key_values["building"] = ["apartments","commercial","farm","hotel","house","industrial","retail","yes"];
+	key_values["evacuation_center"] = ["yes"];
+	key_values["highway"] = ["motorway","trunk","primary","secondary","tertiary","unclassified","residential","living_street","service","track","road","footway","pedestrian","cycleway","steps","path","construction","bus_stop","crossing","mni_roundabout","speed_camera","stop","street_lamp","traffic_signals","turning_circle"];
+	key_values["historic"] = ["archaeological_site","aircraft","battlefield","boundary_stone","building","castle","cannon","city_gate","citywalls","farm","fort","manor","memorial","monument","ruins","rune_stone","ship","wayside_cross","wayside_shrine","yes"];
+	key_values["junction"] = ["roundabout","jughandle","filter","yes"];
+	key_values["landuse"] = ["allotments","basin","brownfield","cemetery","commercial","construction","farm","farmland","farmyard","forest","garages","grass","greenfield","industrial","landfill","meadow","military","orchard","plant_nursery","quarry","railway","reservoir","residential","retail","vineyard"];
 
-	var key = item.value;
+	var key = item.value;	
 	var values = key_values[key];
 	var len = values.length;
 	var select_list = "<select name=\"value\" onchange=\"GetKeyValuePairs(this.form,this)\"  style=\"height:20px; width:148px; background-color:#F7F5D7\">\n	<option value=\"\">value</option>\n";
@@ -105,16 +121,18 @@ function ZoomInAroundCrosshair()
 {
 	var form = document.forms.google_earth;
 	var crosshair = form.crosshair.value;
+//alert(crosshair);	
 	var zoom_size = form.zoom_size.value;
-	if (!crosshair) 
-	{ 
+//	if (!crosshair) 
+//	{ 
 		GetBBoxValue(2);
 		crosshair = document.forms.google_earth.crosshair.value;
 		if (!crosshair) return;
-	}
+//	}
 	var xy = crosshair.split(",");
 	var x = xy[0];
 	var y = xy[1];
+/*	
 	if (x < 112.8 || x > 153.6 || y < -43.8 || y > -10.6)
 	{
 		alert("Crosshair is outside Australia. Data will not be available.");
@@ -122,6 +140,7 @@ function ZoomInAroundCrosshair()
 		document.forms.google_earth.region_title.value = "";
 		return;
 	}
+*/	
 	var x1 = parseFloat(x) - parseFloat((zoom_size/10));
 	x1 = x1.toFixed(1);
 	var y1 = parseFloat(y) - parseFloat((zoom_size/10));
@@ -131,28 +150,28 @@ function ZoomInAroundCrosshair()
 	var y2 = parseFloat(y) + parseFloat((zoom_size/10)) + 0.1;
 	y2 = y2.toFixed(1);
 	var bbox = x1 + "," + y1 + "," + x2 + "," + y2;
+//alert(bbox);	
 	form.bbox.value = bbox;
-//	form.resolution[2].selected = true;
-	CountTheTiles(form);
-	ValidateInput(form,2);
-//	form.region_title.value = ""; // Blank it
-//	form.crosshair.value = ""; // Blank it
+//	CountTheTiles(form);
+	ValidateInput(form,1);
 }
 function GetBBoxValue(box)
 {
+	var form = document.forms.google_earth;
 	if (box == 1)
 	{
 		try 
 		{
 			var bbox= document.getElementById('BBox_finder').contentWindow.document.getElementById('boxbounds').innerHTML;
-			document.forms.google_earth.bbox.value = bbox;
+			form.bbox.value = bbox;
 		}
 		catch(err)
 		{
 			alert("Please open the BBox Finder and draw a box.");
 			return;
 		}
-		CountTheTiles(document.forms.google_earth);
+//		CountTheTiles(document.forms.google_earth);
+		ValidateInput(form,1);
 	}
 	if (box == 2)
 	{
@@ -174,10 +193,14 @@ function GetBBoxValue(box)
 		var title = x + "," + y;
 		
 //alert(title);		
-		document.forms.google_earth.region_title.value = title;
+//		document.forms.google_earth.region_title.value = title;
 	}
 }
 function BlankBboxInputBox(item)
+{
+	item.value = "";
+}
+function BlankOverlaysInputBox(item)
 {
 	item.value = "";
 }
@@ -251,6 +274,11 @@ function GetCoordinates(form,item)
 }
 function InsertTimes(item,prd)
 {
+	var i = item.selectedIndex;
+	var main_images = ['geoglam_fractional_cover.png', 'geoglam_fractional_cover.png', 'geoglam_total_cover.png', 'geoglam_monthly_fractional_cover.png', 'geoglam_monthly_total_cover.png', 'geoglam_monthly_decile_cover.png', 'geoglam_anomaly_fractional_cover.png' ];
+	var main_image = document.getElementById("main_image");	
+	var this_image = main_images[i];
+	main_image.src = '/images/' + this_image; 
 	var times = [];
 	if (prd == 'dea')
 	{
@@ -283,10 +311,9 @@ function InsertTimes(item,prd)
 		times[5] = "2001-01-01T00:00:00.000Z,2001-02-01T00:00:00.000Z,2001-03-01T00:00:00.000Z,2001-04-01T00:00:00.000Z,2001-05-01T00:00:00.000Z,2001-06-01T00:00:00.000Z,2001-07-01T00:00:00.000Z,2001-08-01T00:00:00.000Z,2001-09-01T00:00:00.000Z,2001-10-01T00:00:00.000Z,2001-11-01T00:00:00.000Z,2001-12-01T00:00:00.000Z,2002-01-01T00:00:00.000Z,2002-02-01T00:00:00.000Z,2002-03-01T00:00:00.000Z,2002-04-01T00:00:00.000Z,2002-05-01T00:00:00.000Z,2002-06-01T00:00:00.000Z,2002-07-01T00:00:00.000Z,2002-08-01T00:00:00.000Z,2002-09-01T00:00:00.000Z,2002-10-01T00:00:00.000Z,2002-11-01T00:00:00.000Z,2002-12-01T00:00:00.000Z,2003-01-01T00:00:00.000Z,2003-02-01T00:00:00.000Z,2003-03-01T00:00:00.000Z,2003-04-01T00:00:00.000Z,2003-05-01T00:00:00.000Z,2003-06-01T00:00:00.000Z,2003-07-01T00:00:00.000Z,2003-08-01T00:00:00.000Z,2003-09-01T00:00:00.000Z,2003-10-01T00:00:00.000Z,2003-11-01T00:00:00.000Z,2003-12-01T00:00:00.000Z,2004-01-01T00:00:00.000Z,2004-02-01T00:00:00.000Z,2004-03-01T00:00:00.000Z,2004-04-01T00:00:00.000Z,2004-05-01T00:00:00.000Z,2004-06-01T00:00:00.000Z,2004-07-01T00:00:00.000Z,2004-08-01T00:00:00.000Z,2004-09-01T00:00:00.000Z,2004-10-01T00:00:00.000Z,2004-11-01T00:00:00.000Z,2004-12-01T00:00:00.000Z,2005-01-01T00:00:00.000Z,2005-02-01T00:00:00.000Z,2005-03-01T00:00:00.000Z,2005-04-01T00:00:00.000Z,2005-05-01T00:00:00.000Z,2005-06-01T00:00:00.000Z,2005-07-01T00:00:00.000Z,2005-08-01T00:00:00.000Z,2005-09-01T00:00:00.000Z,2005-10-01T00:00:00.000Z,2005-11-01T00:00:00.000Z,2005-12-01T00:00:00.000Z,2006-01-01T00:00:00.000Z,2006-02-01T00:00:00.000Z,2006-03-01T00:00:00.000Z,2006-04-01T00:00:00.000Z,2006-05-01T00:00:00.000Z,2006-06-01T00:00:00.000Z,2006-07-01T00:00:00.000Z,2006-08-01T00:00:00.000Z,2006-09-01T00:00:00.000Z,2006-10-01T00:00:00.000Z,2006-11-01T00:00:00.000Z,2006-12-01T00:00:00.000Z,2007-01-01T00:00:00.000Z,2007-02-01T00:00:00.000Z,2007-03-01T00:00:00.000Z,2007-04-01T00:00:00.000Z,2007-05-01T00:00:00.000Z,2007-06-01T00:00:00.000Z,2007-07-01T00:00:00.000Z,2007-08-01T00:00:00.000Z,2007-09-01T00:00:00.000Z,2007-10-01T00:00:00.000Z,2007-11-01T00:00:00.000Z,2007-12-01T00:00:00.000Z,2008-01-01T00:00:00.000Z,2008-02-01T00:00:00.000Z,2008-03-01T00:00:00.000Z,2008-04-01T00:00:00.000Z,2008-05-01T00:00:00.000Z,2008-06-01T00:00:00.000Z,2008-07-01T00:00:00.000Z,2008-08-01T00:00:00.000Z,2008-09-01T00:00:00.000Z,2008-10-01T00:00:00.000Z,2008-11-01T00:00:00.000Z,2008-12-01T00:00:00.000Z,2009-01-01T00:00:00.000Z,2009-02-01T00:00:00.000Z,2009-03-01T00:00:00.000Z,2009-04-01T00:00:00.000Z,2009-05-01T00:00:00.000Z,2009-06-01T00:00:00.000Z,2009-07-01T00:00:00.000Z,2009-08-01T00:00:00.000Z,2009-09-01T00:00:00.000Z,2009-10-01T00:00:00.000Z,2009-11-01T00:00:00.000Z,2009-12-01T00:00:00.000Z,2010-01-01T00:00:00.000Z,2010-02-01T00:00:00.000Z,2010-03-01T00:00:00.000Z,2010-04-01T00:00:00.000Z,2010-05-01T00:00:00.000Z,2010-06-01T00:00:00.000Z,2010-07-01T00:00:00.000Z,2010-08-01T00:00:00.000Z,2010-09-01T00:00:00.000Z,2010-10-01T00:00:00.000Z,2010-11-01T00:00:00.000Z,2010-12-01T00:00:00.000Z,2011-01-01T00:00:00.000Z,2011-02-01T00:00:00.000Z,2011-03-01T00:00:00.000Z,2011-04-01T00:00:00.000Z,2011-05-01T00:00:00.000Z,2011-06-01T00:00:00.000Z,2011-07-01T00:00:00.000Z,2011-08-01T00:00:00.000Z,2011-09-01T00:00:00.000Z,2011-10-01T00:00:00.000Z,2011-11-01T00:00:00.000Z,2011-12-01T00:00:00.000Z,2012-01-01T00:00:00.000Z,2012-02-01T00:00:00.000Z,2012-03-01T00:00:00.000Z,2012-04-01T00:00:00.000Z,2012-05-01T00:00:00.000Z,2012-06-01T00:00:00.000Z,2012-07-01T00:00:00.000Z,2012-08-01T00:00:00.000Z,2012-09-01T00:00:00.000Z,2012-10-01T00:00:00.000Z,2012-11-01T00:00:00.000Z,2012-12-01T00:00:00.000Z,2013-01-01T00:00:00.000Z,2013-02-01T00:00:00.000Z,2013-03-01T00:00:00.000Z,2013-04-01T00:00:00.000Z,2013-05-01T00:00:00.000Z,2013-06-01T00:00:00.000Z,2013-07-01T00:00:00.000Z,2013-08-01T00:00:00.000Z,2013-09-01T00:00:00.000Z,2013-10-01T00:00:00.000Z,2013-11-01T00:00:00.000Z,2013-12-01T00:00:00.000Z,2014-01-01T00:00:00.000Z,2014-02-01T00:00:00.000Z,2014-03-01T00:00:00.000Z,2014-04-01T00:00:00.000Z,2014-05-01T00:00:00.000Z,2014-06-01T00:00:00.000Z,2014-07-01T00:00:00.000Z,2014-08-01T00:00:00.000Z,2014-09-01T00:00:00.000Z,2014-10-01T00:00:00.000Z,2014-11-01T00:00:00.000Z,2014-12-01T00:00:00.000Z,2015-01-01T00:00:00.000Z,2015-02-01T00:00:00.000Z,2015-03-01T00:00:00.000Z,2015-04-01T00:00:00.000Z,2015-05-01T00:00:00.000Z,2015-06-01T00:00:00.000Z,2015-07-01T00:00:00.000Z,2015-08-01T00:00:00.000Z,2015-09-01T00:00:00.000Z,2015-10-01T00:00:00.000Z,2015-11-01T00:00:00.000Z,2015-12-01T00:00:00.000Z,2016-01-01T00:00:00.000Z,2016-02-01T00:00:00.000Z,2016-03-01T00:00:00.000Z,2016-04-01T00:00:00.000Z,2016-05-01T00:00:00.000Z,2016-06-01T00:00:00.000Z,2016-07-01T00:00:00.000Z,2016-08-01T00:00:00.000Z,2016-09-01T00:00:00.000Z,2016-10-01T00:00:00.000Z,2016-11-01T00:00:00.000Z,2016-12-01T00:00:00.000Z,2017-01-01T00:00:00.000Z,2017-02-01T00:00:00.000Z,2017-03-01T00:00:00.000Z,2017-04-01T00:00:00.000Z,2017-05-01T00:00:00.000Z,2017-06-01T00:00:00.000Z,2017-07-01T00:00:00.000Z,2017-08-01T00:00:00.000Z,2017-09-01T00:00:00.000Z,2017-10-01T00:00:00.000Z,2017-11-01T00:00:00.000Z,2017-12-01T00:00:00.000Z,2018-01-01T00:00:00.000Z,2018-02-01T00:00:00.000Z,2018-03-01T00:00:00.000Z,2018-04-01T00:00:00.000Z,2018-05-01T00:00:00.000Z,2018-06-01T00:00:00.000Z,2018-07-01T00:00:00.000Z,2018-08-01T00:00:00.000Z,2018-09-01T00:00:00.000Z,2018-10-01T00:00:00.000Z";
 		times[6] = "2001-01-01T00:00:00.000Z,2001-02-01T00:00:00.000Z,2001-03-01T00:00:00.000Z,2001-04-01T00:00:00.000Z,2001-05-01T00:00:00.000Z,2001-06-01T00:00:00.000Z,2001-07-01T00:00:00.000Z,2001-08-01T00:00:00.000Z,2001-09-01T00:00:00.000Z,2001-10-01T00:00:00.000Z,2001-11-01T00:00:00.000Z,2001-12-01T00:00:00.000Z,2002-01-01T00:00:00.000Z,2002-02-01T00:00:00.000Z,2002-03-01T00:00:00.000Z,2002-04-01T00:00:00.000Z,2002-05-01T00:00:00.000Z,2002-06-01T00:00:00.000Z,2002-07-01T00:00:00.000Z,2002-08-01T00:00:00.000Z,2002-09-01T00:00:00.000Z,2002-10-01T00:00:00.000Z,2002-11-01T00:00:00.000Z,2002-12-01T00:00:00.000Z,2003-01-01T00:00:00.000Z,2003-02-01T00:00:00.000Z,2003-03-01T00:00:00.000Z,2003-04-01T00:00:00.000Z,2003-05-01T00:00:00.000Z,2003-06-01T00:00:00.000Z,2003-07-01T00:00:00.000Z,2003-08-01T00:00:00.000Z,2003-09-01T00:00:00.000Z,2003-10-01T00:00:00.000Z,2003-11-01T00:00:00.000Z,2003-12-01T00:00:00.000Z,2004-01-01T00:00:00.000Z,2004-02-01T00:00:00.000Z,2004-03-01T00:00:00.000Z,2004-04-01T00:00:00.000Z,2004-05-01T00:00:00.000Z,2004-06-01T00:00:00.000Z,2004-07-01T00:00:00.000Z,2004-08-01T00:00:00.000Z,2004-09-01T00:00:00.000Z,2004-10-01T00:00:00.000Z,2004-11-01T00:00:00.000Z,2004-12-01T00:00:00.000Z,2005-01-01T00:00:00.000Z,2005-02-01T00:00:00.000Z,2005-03-01T00:00:00.000Z,2005-04-01T00:00:00.000Z,2005-05-01T00:00:00.000Z,2005-06-01T00:00:00.000Z,2005-07-01T00:00:00.000Z,2005-08-01T00:00:00.000Z,2005-09-01T00:00:00.000Z,2005-10-01T00:00:00.000Z,2005-11-01T00:00:00.000Z,2005-12-01T00:00:00.000Z,2006-01-01T00:00:00.000Z,2006-02-01T00:00:00.000Z,2006-03-01T00:00:00.000Z,2006-04-01T00:00:00.000Z,2006-05-01T00:00:00.000Z,2006-06-01T00:00:00.000Z,2006-07-01T00:00:00.000Z,2006-08-01T00:00:00.000Z,2006-09-01T00:00:00.000Z,2006-10-01T00:00:00.000Z,2006-11-01T00:00:00.000Z,2006-12-01T00:00:00.000Z,2007-01-01T00:00:00.000Z,2007-02-01T00:00:00.000Z,2007-03-01T00:00:00.000Z,2007-04-01T00:00:00.000Z,2007-05-01T00:00:00.000Z,2007-06-01T00:00:00.000Z,2007-07-01T00:00:00.000Z,2007-08-01T00:00:00.000Z,2007-09-01T00:00:00.000Z,2007-10-01T00:00:00.000Z,2007-11-01T00:00:00.000Z,2007-12-01T00:00:00.000Z,2008-01-01T00:00:00.000Z,2008-02-01T00:00:00.000Z,2008-03-01T00:00:00.000Z,2008-04-01T00:00:00.000Z,2008-05-01T00:00:00.000Z,2008-06-01T00:00:00.000Z,2008-07-01T00:00:00.000Z,2008-08-01T00:00:00.000Z,2008-09-01T00:00:00.000Z,2008-10-01T00:00:00.000Z,2008-11-01T00:00:00.000Z,2008-12-01T00:00:00.000Z,2009-01-01T00:00:00.000Z,2009-02-01T00:00:00.000Z,2009-03-01T00:00:00.000Z,2009-04-01T00:00:00.000Z,2009-05-01T00:00:00.000Z,2009-06-01T00:00:00.000Z,2009-07-01T00:00:00.000Z,2009-08-01T00:00:00.000Z,2009-09-01T00:00:00.000Z,2009-10-01T00:00:00.000Z,2009-11-01T00:00:00.000Z,2009-12-01T00:00:00.000Z,2010-01-01T00:00:00.000Z,2010-02-01T00:00:00.000Z,2010-03-01T00:00:00.000Z,2010-04-01T00:00:00.000Z,2010-05-01T00:00:00.000Z,2010-06-01T00:00:00.000Z,2010-07-01T00:00:00.000Z,2010-08-01T00:00:00.000Z,2010-09-01T00:00:00.000Z,2010-10-01T00:00:00.000Z,2010-11-01T00:00:00.000Z,2010-12-01T00:00:00.000Z,2011-01-01T00:00:00.000Z,2011-02-01T00:00:00.000Z,2011-03-01T00:00:00.000Z,2011-04-01T00:00:00.000Z,2011-05-01T00:00:00.000Z,2011-06-01T00:00:00.000Z,2011-07-01T00:00:00.000Z,2011-08-01T00:00:00.000Z,2011-09-01T00:00:00.000Z,2011-10-01T00:00:00.000Z,2011-11-01T00:00:00.000Z,2011-12-01T00:00:00.000Z,2012-01-01T00:00:00.000Z,2012-02-01T00:00:00.000Z,2012-03-01T00:00:00.000Z,2012-04-01T00:00:00.000Z,2012-05-01T00:00:00.000Z,2012-06-01T00:00:00.000Z,2012-07-01T00:00:00.000Z,2012-08-01T00:00:00.000Z,2012-09-01T00:00:00.000Z,2012-10-01T00:00:00.000Z,2012-11-01T00:00:00.000Z,2012-12-01T00:00:00.000Z,2013-01-01T00:00:00.000Z,2013-02-01T00:00:00.000Z,2013-03-01T00:00:00.000Z,2013-04-01T00:00:00.000Z,2013-05-01T00:00:00.000Z,2013-06-01T00:00:00.000Z,2013-07-01T00:00:00.000Z,2013-08-01T00:00:00.000Z,2013-09-01T00:00:00.000Z,2013-10-01T00:00:00.000Z,2013-11-01T00:00:00.000Z,2013-12-01T00:00:00.000Z,2014-01-01T00:00:00.000Z,2014-02-01T00:00:00.000Z,2014-03-01T00:00:00.000Z,2014-04-01T00:00:00.000Z,2014-05-01T00:00:00.000Z,2014-06-01T00:00:00.000Z,2014-07-01T00:00:00.000Z,2014-08-01T00:00:00.000Z,2014-09-01T00:00:00.000Z,2014-10-01T00:00:00.000Z,2014-11-01T00:00:00.000Z,2014-12-01T00:00:00.000Z,2015-01-01T00:00:00.000Z,2015-02-01T00:00:00.000Z,2015-03-01T00:00:00.000Z,2015-04-01T00:00:00.000Z,2015-05-01T00:00:00.000Z,2015-06-01T00:00:00.000Z,2015-07-01T00:00:00.000Z,2015-08-01T00:00:00.000Z,2015-09-01T00:00:00.000Z,2015-10-01T00:00:00.000Z,2015-11-01T00:00:00.000Z,2015-12-01T00:00:00.000Z,2016-01-01T00:00:00.000Z,2016-02-01T00:00:00.000Z,2016-03-01T00:00:00.000Z,2016-04-01T00:00:00.000Z,2016-05-01T00:00:00.000Z,2016-06-01T00:00:00.000Z,2016-07-01T00:00:00.000Z,2016-08-01T00:00:00.000Z,2016-09-01T00:00:00.000Z,2016-10-01T00:00:00.000Z,2016-11-01T00:00:00.000Z,2016-12-01T00:00:00.000Z,2017-01-01T00:00:00.000Z,2017-02-01T00:00:00.000Z,2017-03-01T00:00:00.000Z,2017-04-01T00:00:00.000Z,2017-05-01T00:00:00.000Z,2017-06-01T00:00:00.000Z,2017-07-01T00:00:00.000Z,2017-08-01T00:00:00.000Z,2017-09-01T00:00:00.000Z,2017-10-01T00:00:00.000Z,2017-11-01T00:00:00.000Z,2017-12-01T00:00:00.000Z,2018-01-01T00:00:00.000Z,2018-02-01T00:00:00.000Z,2018-03-01T00:00:00.000Z,2018-04-01T00:00:00.000Z,2018-05-01T00:00:00.000Z,2018-06-01T00:00:00.000Z,2018-07-01T00:00:00.000Z,2018-08-01T00:00:00.000Z,2018-09-01T00:00:00.000Z,2018-10-01T00:00:00.000Z";
 	}
-	var i = item.selectedIndex;
 	var time = times[i].split(",");
 	len = time.length;
-	var option_line = "<select title=\"Click only one date.\" size=\"2\" style=\"width:300px; font-size:10px;background-color:#F7F5D7\" name=\"time\">\n";
+	var option_line = "<select title=\"Click only one date.\" size=\"2\" style=\"width:300px; height:50px; font-size:10px;background-color:#F7F5D7\" name=\"time\" multiple=\"multiple\">\n";
 	for (var j=0; j < len; j++)
 	{
 		date = time[j].replace("T00:00:00.000Z","");
@@ -366,14 +393,22 @@ function ajaxFunction(n,form,item)
 		  if (n == 1) // KML - GEOGLAM
 		  {
 //alert('n = ' + n + ' response = ' + response);
-			document.getElementById("kml").innerHTML = response;
-			showHide("kml", "block");
-			var rand = Math.floor((Math.random()*1000000)+1);
-			var iframe = document.getElementById('NWW');
-			iframe.src = "http://130.56.242.19/NASA/WorldWind/dea_kml.html?"+rand;
-			showHide('top_section', 'div', 'none'); 
-			showHide('nww_section', 'div', 'block'); 
-
+			if(response)
+			{
+				document.getElementById("kml").innerHTML = response;
+				var rand = Math.floor((Math.random()*1000000)+1);
+				var iframe = document.getElementById('NWW');
+				iframe.src = "http://130.56.242.19/NASA/WorldWind/dea_kml.html?"+rand;
+				showHide("kml", "div", "block");
+				showHide('top_section', 'div', 'none'); 
+				showHide('nww_section', 'div', 'block'); 
+			}
+			else
+			{
+				document.getElementById("killed").innerHTML = "<font style=\"color:#FF0000\">Timeout or crash of program. Try a smaller region.</font>";
+				showHide("killed", "block");
+				showHide("kml", 'span', "none");
+			}
 		  }
 		  if (n == 2) // KML - DEA
 		  {
@@ -385,6 +420,7 @@ function ajaxFunction(n,form,item)
 		  {
 			document.getElementById("killed").innerHTML = response;
 			showHide("killed", "block");
+			showHide("kml", 'span', "none");
 //alert('n = ' + n + ' response = ' + response);
 		  }
 	  }

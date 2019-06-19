@@ -94,6 +94,16 @@ $placemark
 }
 sub GroundOverlay
 {
+	my $x = ($east+$west)/2.0;
+	my $y = ($north+$south)/2.0;
+	my $eye = abs($south - $north)*150*1000;
+	$lookAt = "
+		<LookAt>
+			<longitude>$x</longitude>
+			<latitude>$y</latitude>
+			<altitude>$eye</altitude>
+		</LookAt>
+	";
 	$groundOverlay .= "
 <!-- $date -->
 <GroundOverlay>
@@ -106,6 +116,7 @@ sub GroundOverlay
         <viewRefreshMode>onStop</viewRefreshMode>
         <viewBoundScale>0.75</viewBoundScale>
     </Icon>
+    $lookAt
     <LatLonBox>
         <west>$west</west>
         <south>$south</south>
@@ -176,6 +187,26 @@ sub CreateSingleKML
 }
 
 sub CreateMultipleKML
+{
+p($time);	
+	# For the GEOGLAM Tiles. Called from geoglam.html as below.
+	# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
+	$visibility = 1; # Set this to 0 after the first layer. 
+	my @times = split(/,/, $time);
+	my $len = $#times;
+	for (my $j=0; $j <= $len; $j++)
+	{
+		$date = $times[$j];
+		$date =~ s/T.*Z//gi;
+		$title = $region . "_" . $basetitle . " " . $date;
+		$time = "";
+		if($times[$j]) { $time="TIME=$times[$j]"; }
+		GroundOverlay;
+		$visibility = 0; # Subsequent layers are set as visibility=0
+	}
+	$kml = $groundOverlay;
+}
+sub CreateMultipleKML_0
 {
 	# For the GEOGLAM Tiles. Called from geoglam.html as below.
 	# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
@@ -355,10 +386,8 @@ sub GetTheOverlays
 	for ($j=0; $j <= $len; $j++)
 	{
 		$outline = $outlines[$j];
-#p("outline = $outline");		
 		GetAndCreatePlacemarks($key_value_pairs[$j]);
 	}
-#	my $geoglam = GetGeoglam;
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
@@ -372,7 +401,6 @@ sub GetTheOverlays
 </kml>
 	";
 	$datadir = "/var/www/html/NASA/WorldWind/data/AVS";
-#print "$datadir/dea_2.kml\n";
 	open(OUT, ">$datadir/dea_2.kml");
 	print OUT "$xml\n";
 	close(OUT);
@@ -469,30 +497,36 @@ sub do_main
 			{
 				# This is a multiple time selection
 				CreateMultipleKML;
-				$outfile = $region . "_" . $basetitle . $$ . "_" . ".kml";
-				$outfile =~ s/ /_/gi;
-				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-				print OUT $kml;
-				close(OUT);
-				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+				GetTheOverlays; # This is to get the OSM layers from Overpass
+#				$outfile = $region . "_" . $basetitle . $$ . "_" . ".kml";
+#				$outfile =~ s/ /_/gi;
+#				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
+#				print OUT $kml;
+#				close(OUT);
+				print "<small>Fetched multiple dates! See the map above.</small>";
+#				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
 				exit;
 			}
 			else
 			{
 				if ($time)
 				{
+					$date = $time;
+					$date =~ s/T.*Z//gi;
+#					$date =~ s/-//gi;
 					$time="TIME=$time";
 				}
-				$title = $region . "_" . $basetitle . " " . $date;
+				$title = $basetitle . " " . $date;
 				CreateSingleKML;
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-				$outfile = $region . "_" . $basetitle . "_" . $$ . "_" . $date . ".kml";
-				$outfile =~ s/ /_/gi;
-				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-				print OUT $kml;
-				print OUT $overlay;
-				close(OUT);
-				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+#				$outfile = $region . "_" . $basetitle . "_" . $$ . "_" . $date . ".kml";
+#				$outfile =~ s/ /_/gi;
+#				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
+#				print OUT $kml;
+#				print OUT $overlay;
+#				close(OUT);
+#				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+				print "<small>Fetched! See the map above.</small>";
 			}
 			exit;
 		}
@@ -1039,7 +1073,7 @@ $groundOverlay
 #			$layer = $fields[0];
 			print "Content-type: text/html\n\n"; $headerAdded = 1;
 			$layer =~ s/\|/\\|/g;
-			my $pscmd = "ps -ef | grep \"/var/www/cgi-bin/google_earth.cgi DEA.*$layer\" | grep -v grep";
+			my $pscmd = "ps -ef | grep \"/var/www/cgi-bin/nww_kml.cgi GEOGLAM.*$layer\" | grep -v grep";
 			my $psline = `$pscmd`;
 			$psline =~ tr/  / /s;
 #print "pscmd=$pscmd\n";
@@ -1057,6 +1091,7 @@ $groundOverlay
 			{
 				print "Could not find any process to kill.\n";
 			}
+			exit;
 		}
 		if ($sc_action eq "Purge")
 		{
@@ -1096,7 +1131,7 @@ $domain = $ENV{HTTP_HOST};
 $ows_domain = "130.56.242.15";
 $docroot = $ENV{DOCUMENT_ROOT};
 if (!$docroot) { $docroot = "/var/www/html"; }
-$cgi = "http://$domain/cgi-bin/google_earth.cgi"; # On VM19
+$cgi = "http://$domain/cgi-bin/nww_kml.cgi"; # On VM19
 $basedir = "$docroot/GEWeb/DEA_Layers";
 $tmpdir = "/var/www/html/NASA/WorldWind/data/Tmp";
 $localdir = "/local";
