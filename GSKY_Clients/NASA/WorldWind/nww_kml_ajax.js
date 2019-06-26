@@ -15,7 +15,7 @@ function DisplayNWW()
 {
 	var rand = Math.floor((Math.random()*1000000)+1);
 	var iframe = document.getElementById('NWW');
-	iframe.src = "http://130.56.242.19/NASA/WorldWind/dea_kml.html?"+rand;
+	iframe.src = "http://130.56.242.19/NASA/WorldWind/nww_kml.html?"+rand;
 //	showHideToggle('top_section', 'div'); 
 	showHideToggle('nww_section', 'div'); 
 }
@@ -242,14 +242,19 @@ function ValidateInput(form,n)
 }
 function GetCoordinates(form,item)
 {
-	if(item.value == 'UNLISTED')
+	if(item.value == 'LE')
+	{
+		form.bbox.value = '135.703125,-29.840644,138.339844,-26.745610';
+		return;
+	}
+	if(item.value == '')
 	{
 		form.bbox.value = '';
 		return;
 	}
 	var region = [];
-	region["Australia"] = "112.324219,-44.087585,153.984375,-10.919618";
-	region["Canberra"] = "149.049454,-35.430252,149.288156,-35.271971";
+	region["AU"] = "112.324219,-44.087585,153.984375,-10.919618";
+	region["CBR"] = "149.049454,-35.430252,149.288156,-35.271971";
 	region["WA"] = "113.378906,-35.137879,129.067383,-13.539201";
 	region["NT"] = "128.979492,-26.076521,137.988281,-11.005904";
 	region["SA"] = "129.023438,-37.996163,141.064453,-25.958045";
@@ -259,13 +264,13 @@ function GetCoordinates(form,item)
 	region["VIC"] = "140.756836,-38.925229,151.435547,-34.415973";
 	region["TAS"] = "143.525391,-43.644026,148.623047,-39.504041";
 	region["NZ"] = "166.333008,-47.368594,178.989258,-34.198173";
-	region["US_ALL"] = "-125.332031,24.766785,-67.412109,48.980217";
-	region["US_WC"] = "-127.001953,32.694866,-113.554688,49.210420"; 
-	region["US_CEN"] = "-109.160156,26.902477,-95.097656,48.922499";
-	region["US_EAST"] = "-94.746094,25.482951,-62.753906,47.517201";
-	region["Europe"] = "-12.304688,35.460670,37.968750,58.631217";
-	region["West_Europe"] = "-11.250000,35.889050,18.808594,58.722599";
-	region["East_Europe"] = "19.511719,37.020098,40.429688,59.445075";
+	region["US"] = "-125.332031,24.766785,-67.412109,48.980217";
+	region["US_W"] = "-127.001953,32.694866,-113.554688,49.210420"; 
+	region["US_C"] = "-109.160156,26.902477,-95.097656,48.922499";
+	region["US_E"] = "-94.746094,25.482951,-62.753906,47.517201";
+	region["EU"] = "-12.304688,35.460670,37.968750,58.631217";
+	region["EU_W"] = "-11.250000,35.889050,18.808594,58.722599";
+	region["EU_E"] = "19.511719,37.020098,40.429688,59.445075";
 	var bbox = region[item.value];
 	if (bbox)
 	{
@@ -313,7 +318,7 @@ function InsertTimes(item,prd)
 	}
 	var time = times[i].split(",");
 	len = time.length;
-	var option_line = "<select title=\"Click only one date.\" size=\"2\" style=\"width:300px; height:50px; font-size:10px;background-color:#F7F5D7\" name=\"time\" multiple=\"multiple\">\n";
+	var option_line = "<select title=\"Select one or more dates.\" size=\"2\" style=\"width:300px; height:50px; font-size:10px;background-color:#F7F5D7\" name=\"time\" multiple=\"multiple\">\n";
 	for (var j=0; j < len; j++)
 	{
 		date = time[j].replace("T00:00:00.000Z","");
@@ -398,7 +403,7 @@ function ajaxFunction(n,form,item)
 				document.getElementById("kml").innerHTML = response;
 				var rand = Math.floor((Math.random()*1000000)+1);
 				var iframe = document.getElementById('NWW');
-				iframe.src = "http://130.56.242.19/NASA/WorldWind/dea_kml.html?"+rand;
+				iframe.src = "http://130.56.242.19/NASA/WorldWind/nww_kml.html?"+rand;
 				showHide("kml", "div", "block");
 				showHide('top_section', 'div', 'none'); 
 				showHide('nww_section', 'div', 'block'); 

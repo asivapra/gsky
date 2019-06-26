@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # Created on 31 Mar, 2019
-# Last edit: 12 Jun, 2019
+# Last edit: 19 Jun, 2019
 # By Dr. Arapaut V. Sivaprasad
 =pod
 This CGI is for creating the KMLs for displaying the GSKY layers via Google Earth Web.
@@ -57,13 +57,9 @@ sub Get_fields
 }
 sub GroundOverlayTiles
 {
-#p($bbox);	
 	# To create the multi "GroundOverlay" KML for displaying the DEA tiles
 	my $n_tiles = $_[0];
 	my $title = $_[1];
-#	my $region_title = $_[2];
-#	my $skip_curl = $_[2];
-#p($title);
 	$groundOverlay .= "
 <name>$region | $layer</name>	
 $placemark
@@ -98,11 +94,11 @@ sub GroundOverlay
 	my $y = ($north+$south)/2.0;
 	my $eye = abs($south - $north)*150*1000;
 	$lookAt = "
-		<LookAt>
-			<longitude>$x</longitude>
-			<latitude>$y</latitude>
-			<altitude>$eye</altitude>
-		</LookAt>
+	<LookAt>
+		<longitude>$x</longitude>
+		<latitude>$y</latitude>
+		<altitude>$eye</altitude>
+	</LookAt>
 	";
 	$groundOverlay .= "
 <!-- $date -->
@@ -111,7 +107,7 @@ sub GroundOverlay
     <visibility>$visibility</visibility>
     <Icon>
         <href>
-            http://130.56.242.15/ows/ge?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
+            $gskyUrl?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
         </href>
         <viewRefreshMode>onStop</viewRefreshMode>
         <viewBoundScale>0.75</viewBoundScale>
@@ -124,33 +120,6 @@ sub GroundOverlay
         <north>$north</north>
     </LatLonBox>
 </GroundOverlay>
-	";
-	# Create a Shell script to run the WMS for each tile and save as PNG
-#	print OUT "echo $nt\n"; $nt--;
-#	print OUT "curl 'http://130.56.242.15/ows/ge?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time'\n";
-}
-sub CreateSingleKML_0
-{
-	$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-<GroundOverlay>
-    <name>$title</name>
-    <visibility>1</visibility>
-    <Icon>
-        <href>
-            http://130.56.242.15/ows/ge?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
-        </href>
-        <viewRefreshMode>onStop</viewRefreshMode>
-        <viewBoundScale>0.75</viewBoundScale>
-    </Icon>
-    <LatLonBox>
-        <north>$north</north>
-        <south>$south</south>
-        <east>$east</east>
-        <west>$west</west>
-    </LatLonBox>
-</GroundOverlay>
-</kml>
 	";
 }
 sub CreateSingleKML
@@ -166,29 +135,27 @@ sub CreateSingleKML
 		</LookAt>
 	";
 	$kml = "<GroundOverlay>
-    <name>$title</name>
-    <visibility>1</visibility>
-    <Icon>
-        <href>
-            http://130.56.242.15/ows/ge?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
-        </href>
-        <viewRefreshMode>onStop</viewRefreshMode>
-        <viewBoundScale>0.75</viewBoundScale>
-    </Icon>
-    $lookAt
-    <LatLonBox>
-        <north>$north</north>
-        <south>$south</south>
-        <east>$east</east>
-        <west>$west</west>
-    </LatLonBox>
-</GroundOverlay>
-	";
+		<name>$title</name>
+		<visibility>1</visibility>
+		<Icon>
+			<href>
+				$gskyUrl?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
+			</href>
+			<viewRefreshMode>onStop</viewRefreshMode>
+			<viewBoundScale>0.75</viewBoundScale>
+		</Icon>
+		$lookAt
+		<LatLonBox>
+			<north>$north</north>
+			<south>$south</south>
+			<east>$east</east>
+			<west>$west</west>
+		</LatLonBox>
+	</GroundOverlay>";
 }
 
 sub CreateMultipleKML
 {
-p($time);	
 	# For the GEOGLAM Tiles. Called from geoglam.html as below.
 	# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
 	$visibility = 1; # Set this to 0 after the first layer. 
@@ -206,31 +173,6 @@ p($time);
 	}
 	$kml = $groundOverlay;
 }
-sub CreateMultipleKML_0
-{
-	# For the GEOGLAM Tiles. Called from geoglam.html as below.
-	# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
-	$visibility = 1; # Set this to 0 after the first layer. 
-	my @times = split(/,/, $time);
-	my $len = $#times;
-	for (my $j=0; $j <= $len; $j++)
-	{
-		$date = $times[$j];
-		$date =~ s/T.*Z//gi;
-		$title = $region . "_" . $basetitle . " " . $date;
-		$time = "";
-		if($times[$j]) { $time="TIME=$times[$j]"; }
-		GroundOverlay;
-		$visibility = 0; # Subsequent layers are set as visibility=0
-	}
-	$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-<Document>
-$groundOverlay	
-</Document>
-</kml>
-	";
-}
 sub CreateMultipleTilesKML
 {
 	$visibility = 1; # Set this to 0 after the first layer. 
@@ -246,7 +188,6 @@ sub CreateMultipleTilesKML
 		my $line = $filecontent[$j];
 		$line =~ s/\n//;
 		my @fields = split(/,/, $line);
-#		if ($fields[4] == 0) { next; } # Skip if the value in last column is 0
 		$west = $fields[0];
 		$south = $fields[1];
 		$east = $fields[2];
@@ -254,7 +195,6 @@ sub CreateMultipleTilesKML
 		pop(@fields);
 		$bbox = join(",", @fields);
 		GroundOverlay;
-#		$visibility = 0; # Subsequent layers are set as visibility=0
 	}
 	close(OUT);
 	$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -273,7 +213,6 @@ sub GetPlacemark
 	close(INP);
 	@filecontent = split(/<Placemark>/, $filecontent[0]);
 	my $len = $#filecontent;
-#$len = 900;	
 	my $placemark = "";
 	for (my $j=1; $j < $len; $j++)
 	{
@@ -286,7 +225,6 @@ sub GetPlacemark
 		open(OUT, ">$tempfile");
 		print OUT "<Placemark>$filecontent[$j]\n";
 		close(OUT);
-#p($tempfile);
 		my $xml_doc = $parser->parsefile ($tempfile);
 		$xml_hash = $xml_converter->fromDOMtoHash($xml_doc);
 		my $name = $blank_name;
@@ -296,7 +234,6 @@ sub GetPlacemark
 		}
 		if ($include_named_only && $name eq $blank_name) { next; }
 		if ($include_unnamed_only && $name ne $blank_name) { next; }
-#print  "$j of $len\n";	
 		if ($polygon)
 		{
 			$nplacemark++;
@@ -309,11 +246,29 @@ sub GetPlacemark
 		}
 	}
 	$placemark =~ s/\n\t\t$//gi;
-#p("Here",1);	
 	return $placemark;
 }
 sub GetAndCreatePlacemarks
 {
+=pod
+Sub to prepare the 'osm-script' and retrieve the overlay data.
+
+	Key/Value pairs ($kv) comes from the web page. These are sent, one at a time
+	to the Overpass API to get the data in OSM format. 
+	
+	The osm-script is sent to the API using wget:
+		`wget --post-file=$txtfile http://overpass-api.de/api/interpreter --output-document=$osmfile`;
+	
+	The data is first converted into 'geojson' format by the 'osmtogeojson' program.	
+		see https://www.npmjs.com/package/osmtogeojson to install.
+		
+	The saved file, '*.geojson', is converted into KML by 'tokml'
+		see https://github.com/mapbox/tokml to install
+
+	The placemarks in the KML file are extracted and inserted into '$overlay'
+		$placemark = GetPlacemark($kmlfile);
+		
+=cut
 	my $kv = $_[0];
 	my $overlay_name = $kv;
 	my @kv = split(/\|/, $kv);
@@ -342,7 +297,6 @@ sub GetAndCreatePlacemarks
     <print mode=\"body\"/>
 </osm-script>
 ";
-#p($osm_script);
 	my $txtfile = "$tmpdir/Tmp.txt";
 	my $osmfile = "$tmpdir/Tmp.osm";
 	my $geojsonfile = "$tmpdir/Tmp.geojson";
@@ -353,34 +307,36 @@ sub GetAndCreatePlacemarks
 	`wget --post-file=$txtfile http://overpass-api.de/api/interpreter --output-document=$osmfile`;
 	`osmtogeojson $osmfile > $geojsonfile`;
 	`tokml $geojsonfile > $kmlfile`;
-#p("	`/var/www/cgi-bin/xml_to_hash.pl $txtfile`;");
-#	`perl /var/www/cgi-bin/xml_to_hash.pl $txtfile`;
 	$nplacemark = 0;
 	$placemark = GetPlacemark($kmlfile);
 	if ($placemark)
 	{
-		 $overlay .= "
-		<Folder>
-			<name>$overlay_name: $nplacemark</name>
-			<visibility>1</visibility>
-			$lookAt
-			$placemark
-		</Folder>
-		 ";
+		 $overlay .= "<!-- Visible Overlays -->
+	<Folder>
+		<name>$overlay_name: $nplacemark</name>
+		<visibility>1</visibility>
+		$lookAt
+		$placemark
+	</Folder>
+";
 	}
 	else
 	{
-		 $overlay .= "
-		<Folder>
-			<name>$overlay_name: $nplacemark</name>
-			<visibility>0</visibility>
-		</Folder>
-		 ";
+		 $overlay .= "<!-- Unavailable Overlays -->
+	<Folder>
+		<name>$overlay_name: $nplacemark</name>
+		<visibility>0</visibility>
+	</Folder>
+";
 	}
 	
 }
 sub GetTheOverlays
 {
+=pod
+	Key/Value pairs ($kv) comes from the web page. These are sent, one at a time
+	to the Overpass API to build the '$overlay'
+=cut
 	my @key_value_pairs = split(/;/, $key_value_pairs);
 	my $len = $#key_value_pairs;
 	for ($j=0; $j <= $len; $j++)
@@ -391,17 +347,18 @@ sub GetTheOverlays
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
-	<name>______Layers_______</name>
+	<name>_______Layers_______</name>
 	$kml
-	$overlay
+$overlay
+<!-- End of Overlays -->
 	<Folder>
-		<name>______Components__________</name>
+		<name>_____Placemarks_____</name>
 	</Folder>
 </Document>
 </kml>
 	";
-	$datadir = "/var/www/html/NASA/WorldWind/data/AVS";
-	open(OUT, ">$datadir/dea_2.kml");
+	$datadir = "/var/www/html/NASA/WorldWind/data/nww";
+	open(OUT, ">$datadir/nww.kml");
 	print OUT "$xml\n";
 	close(OUT);
 }
@@ -445,12 +402,10 @@ sub do_main
 		Item #3 is the GET string to be parsed.
 =cut
 		$sc_action = $ARGV[0];
-#&debug($sc_action);
 		if (!$sc_action)
 		{
 			$dumb = 1; # This is a dumb URL with &BBOX=0,0,0,0 added at the end.
 			$request_string = $ENV{QUERY_STRING};
-#&debug("request_string = $request_string",1);	
 			@fields = split (/\&/, $request_string);
 			$sc_action = $fields[0];
 			@fields = split (/\+/, $sc_action);
@@ -466,7 +421,6 @@ sub do_main
 			}
 			if ($sc_action eq "WMS")
 			{
-# http://130.56.242.19/cgi-bin/google_earth.cgi?WMS+landsat8_nbar_16day+136.8,-34.8,136.9,-34.7+2013-06-07+0.1
 				$layer = $fields[1];
 				$bbox = $fields[2];
 				$time = $fields[3];
@@ -498,13 +452,7 @@ sub do_main
 				# This is a multiple time selection
 				CreateMultipleKML;
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-#				$outfile = $region . "_" . $basetitle . $$ . "_" . ".kml";
-#				$outfile =~ s/ /_/gi;
-#				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-#				print OUT $kml;
-#				close(OUT);
 				print "<small>Fetched multiple dates! See the map above.</small>";
-#				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
 				exit;
 			}
 			else
@@ -513,19 +461,11 @@ sub do_main
 				{
 					$date = $time;
 					$date =~ s/T.*Z//gi;
-#					$date =~ s/-//gi;
 					$time="TIME=$time";
 				}
 				$title = $basetitle . " " . $date;
 				CreateSingleKML;
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-#				$outfile = $region . "_" . $basetitle . "_" . $$ . "_" . $date . ".kml";
-#				$outfile =~ s/ /_/gi;
-#				open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-#				print OUT $kml;
-#				print OUT $overlay;
-#				close(OUT);
-#				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
 				print "<small>Fetched! See the map above.</small>";
 			}
 			exit;
@@ -663,11 +603,6 @@ sub do_main
 				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
 			}
 
-#			if ($n_tiles > 50 && $n_tiles <= 100)
-#			{
-#				&debug("<font style=\"color:red; font-size:12px\">This could take a long time to fetch the tiles.<br>Please consider choosing a smaller region or a lower resolution.</font>");
-#			}
-			
 			if ($n_tiles > 125)
 			{
 				&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
@@ -697,9 +632,7 @@ sub do_main
 	</Point>
 </Placemark>
 ";
-#p("$pmx, $pmy");	
 			my $ct0 = time();
-#p("			CountTheTiles($w,$s,$e,$n);");
 			CountTheTiles($w,$s,$e,$n);
 			my @keys = sort keys %tilesHash;
 			my $n_tiles = 0;
@@ -1121,7 +1054,7 @@ $groundOverlay
 		}
 		else
 		{
-			&debug("Warning: sc_action not found!");
+			&debug("INFO: This CGI must be called from within a web page!");
 		}
 	}
 }
@@ -1132,6 +1065,7 @@ $ows_domain = "130.56.242.15";
 $docroot = $ENV{DOCUMENT_ROOT};
 if (!$docroot) { $docroot = "/var/www/html"; }
 $cgi = "http://$domain/cgi-bin/nww_kml.cgi"; # On VM19
+$gskyUrl = "http://130.56.242.15/ows/ge";
 $basedir = "$docroot/GEWeb/DEA_Layers";
 $tmpdir = "/var/www/html/NASA/WorldWind/data/Tmp";
 $localdir = "/local";
