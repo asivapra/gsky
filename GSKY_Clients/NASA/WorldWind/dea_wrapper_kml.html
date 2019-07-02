@@ -92,10 +92,12 @@ else url = 'm_geoglam_wrapper_kml.html';
 				<a href="https://worldwind.arc.nasa.gov/" target="_blank"><img alt="NASA WorldWind" src="https://worldwind.arc.nasa.gov/img/nasa-logo.svg" width="100"></a>
 			</td>
 			<td nowrap>
-				<h3>GskyNWW:- <b>GEOGLAM</b></h3>
+				<h3>GskyNWW:- <b>DEA</b></h3>
 				<h4>Wrapper for NASA World Wind (KML) </h4>
 				
-				(Click here for <a href="dea_wrapper_kml.html">DEA</a>)
+				(Click here for 
+				<a href="geoglam_wrapper_kml.html"><span class="text-primary">
+				GEOGLAM</span></a>)
 				<br>
 			</td>
 		</tr>
@@ -104,14 +106,14 @@ else url = 'm_geoglam_wrapper_kml.html';
 	<div id="nww_section" style="display:none">
 		<iframe id="NWW" style="width:100%; height:710px"></iframe>
 	</div>
-	<div id="top_section" style="display:block">
+	<div id="top_section" style="display:none">
 	    <div class="content-container">
 		<article>
 			<tldr>
 		        <section>
 		        <h3>What's This?</h3>
 		        <p>
-		        This page will create the JS and KML files required to display the GEOGLAM layers in <b>NASA World Wind</b>. Both temporal and spatial dimensions can be specified.
+		        This page will create the JS and KML files required to display the DEA satellite layers in <b>NASA World Wind</b>. Both temporal and spatial dimensions can be specified.
 		        It is possible to overlay the GSKY layers with other terrain features like water, scrub, forest, wetland, etc. 
 		        <br>
 		        </p>
@@ -120,8 +122,8 @@ else url = 'm_geoglam_wrapper_kml.html';
 			        <section>
 			        <div style="font-size:12px">
 			        <p>
-			        The objective of this web app is to display the GSKY layers with other data so that it may make more sense than seeing the GSKY layer alone. For example, the GEOGLAM vegetative
-			        cover may be more meaningful if overlaid with forests, grassland, sand, water bodies, etc. 
+			        The objective of this web app is to display the GSKY layers with other data so that it may make more sense than seeing the GSKY layer alone. For example, the DEA satellite
+			        data may be more meaningful if overlaid with forests, grassland, sand, water bodies, etc. 
 			        </p>
 		   	        <p>
 					QGIS provides this functionality through 'QuickOSM', but somewhat complex manual settings are required. 
@@ -158,8 +160,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 		        <h3>Purpose</h3>
 		        <p>
 				GSKY provides a WMS interface to display the satellite and geospatial data in both temporal and spatial dimensions. 
-				Such data may convey more meaning if combined with other data. In this app, the GEOGLAM vegetative
-		        cover can be overlaid with forests, grassland, sand, water, etc. so that the display may make more sense.
+				Such data may convey more meaning if combined with other data. In this app, the DEA satellite data can be overlaid with forests, grassland, sand, water, etc. so that the display may make more sense.
 				<br>&nbsp;
 				</p>
 
@@ -168,7 +169,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 				        <h3>How to Run:</h3>
 				        <ul>
 				        <li>
-				        	Choose the required GEOGLAM layer.
+				        	Choose the required DEA layer.
 				        </li>
 				        <li>
 				        	Choose the data acquisition date. 
@@ -214,25 +215,35 @@ else url = 'm_geoglam_wrapper_kml.html';
 		</div>
 	</div>
 	<div style="text-align:left; width:100%">
-<!--	<form id="google_earth" name="google_earth" method="POST" action="google_earth.cgi">-->
 	<form id="google_earth" name="google_earth">
     <table class="jumbotron hidden-xs-" style="width:100%">
 		<tr>
 			<td style="width:20%; text-align:right; vertical-align:top; font-weight:bold; padding-right:10px" rowspan="7">
-				<span style="cursor:pointer; text-decoration:underline" onmousedown="DisplayNWW()"><img id="main_image" src="/images/geoglam_fractional_cover.png" alt="GEOGLAM" title="Open/Close the NASA World Wind Pane"></span>
+				<span style="cursor:pointer; text-decoration:underline" onmousedown="DisplayNWW()"><img id="main_image" src="/images/dea_ls7tcsr.png" alt="DEA LS7 TCSR" title="Open/Close the NASA World Wind Pane"></span>
 			</td>
 			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px;">
 				Layer:
 			</td>
 			<td style="width:80%; padding-top:0px; ">
-				<select name="layer" style="width:300px; height:25px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this)">
-					<option value="global:c6:frac_cover|Fractional Cover C6">GEOGLAM - Fractional Cover C6</option>
-					<option value="global:c6:frac_cover|Fractional Cover C6">Fractional Cover C6</option>
-					<option value="global:c6:total_cover|Total Cover C6">Total Cover C6</option>
-					<option value="global:c6:monthly_frac_cover|Monthly Fractional Cover C6">Monthly Fractional Cover C6</option>
-					<option value="global:c6:monthly_total_cover|Monthly Total Cover C6">Monthly Total Cover C6</option>
-					<option value="global:c6:monthly_decile_total_cover|Monthly Decile Total Cover C6">Monthly Decile Total Cover C6</option>
-					<option value="global:c6:monthly_anom_frac_cover|Anomaly Fractional Cover C6">Anomaly Fractional Cover C6</option>
+				<select name="layer" style="width:300px; height:23px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this,'dea');">
+					<option value="">DEA</option>
+					<option value="landsat5_geomedian|LS5 terrain corrected surface reflectance geometric median">LS5 terrain corrected surface reflectance geometric median</option>
+					<option value="landsat7_geomedian|LS7 terrain corrected surface reflectance geometric median">LS7 terrain corrected surface reflectance geometric median</option>
+					<option value="landsat8_geomedian|LS8 terrain corrected surface reflectance geometric median">LS8 terrain corrected surface reflectance geometric median</option>
+					<option value="landsat5_nbar_16day|16-day LS5 surface reflectance">16-day LS5 surface reflectance</option>
+					<option value="landsat5_nbart_16day|16-day LS5 terrain corrected surface reflectance">16-day LS5 terrain corrected surface reflectance</option>
+					<option value="landsat7_nbar_16day|16-day LS7 surface reflectance" selected="selected">16-day LS7 surface reflectance</option>
+					<option value="landsat7_nbart_16day|16-day LS7 terrain corrected surface reflectance">16-day LS7 terrain corrected surface reflectance</option>
+					<option value="landsat8_nbar_16day|16-day LS8 surface reflectance">16-day LS8 surface reflectance</option>
+					<option value="landsat8_nbart_16day|16-day LS8 terrain corrected surface reflectance">16-day LS8 terrain corrected surface reflectance</option>
+					<option value="landsat5_nbar_daily|Daily LS5 surface reflectance">Daily LS5 surface reflectance</option>
+					<option value="landsat5_nbart_daily|Daily LS5 terrain corrected surface reflectance">Daily LS5 terrain corrected surface reflectance</option>
+					<option value="landsat7_nbar_daily|Daily LS7 surface reflectance">Daily LS7 surface reflectance</option>
+					<option value="landsat7_nbart_daily|Daily LS7 terrain corrected surface reflectance">Daily LS7 terrain corrected surface reflectance</option>
+					<option value="landsat8_nbar_daily|Daily LS8 surface reflectance">Daily LS8 surface reflectance</option>
+					<option value="landsat8_nbart_daily|Daily LS8 terrain corrected surface reflectance">Daily LS8 terrain corrected surface reflectance</option>
+					<option value="sentinel2_nbart_daily|Sentinel 2 Analysis Ready Data">Sentinel 2 Analysis Ready Data</option>
+					<option value="wofs|DEA Water Observation Feature Layer">DEA Water Observation Feature Layer</option>
 				</select>
 			</td>
 			<td rowspan="7" style="background-color:auto; vertical-align:top">
@@ -245,7 +256,8 @@ else url = 'm_geoglam_wrapper_kml.html';
 			</td>
 			<td style="width:80%; height:25px; padding-top:10px; white-space:nowrap">
 				<span id="times" style="display:block;">
-				<select name="time" style="width:300px; height:50px; background-color:#F7F5D7; font-size:12px;" multiple="multiple"><option value="">2018-11-01</Option></select></span>
+				<select name="time" style="width:300px; height:50px; background-color:#F7F5D7; font-size:12px;" multiple="multiple">
+				<option>1999-08-16</Option></select></span>
 			</td>
 		</tr>
 		<tr>
@@ -253,27 +265,19 @@ else url = 'm_geoglam_wrapper_kml.html';
 				Region:
 			</td>
 			<td style="width:80%; padding-top:0px">
-				<select name="region" style="width:300px; height:25px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
-					<option value=""></option>
-					<option value="LE" selected="selected">Lake Eyre</option>
+				<select name="region" style="width:300px; height:23px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this,'dea'); CountTheTiles(this.form)">
+					<option value="LE">Lake Eyre</option>
 					<option value="AU">Australia</option>
 					<option value="CBR">Canberra</option>
-					<option value="WA"> Western Australia</option>
-					<option value="NT">Northern Territory</option>
-					<option value="SA">South Australia</option>
-					<option value="QLD">Queensland</option>
-					<option value="NSW">NSW</option>
+					<option value="UL">User-defined</option>
 					<option value="ACT">ACT</option>
-					<option value="VIC">Victoria</option>
+					<option value="NT">Northern Territory</option>
+					<option value="NSW">New South Wales</option>
+					<option value="QLD">Queensland</option>
+					<option value="SA">South Australia</option>
 					<option value="TAS">Tasmania</option>
-					<option value="NZ">New Zealand</option>
-					<option value="US">USA</option>
-					<option value="US_W">US West Coast</option>
-					<option value="US_C">US Central</option>
-					<option value="US_E">US East Coast</option>
-					<option value="EU">Europe</option>
-					<option value="EU_W">Western Europe</option>
-					<option value="EU_E">Eastern Europe</option>
+					<option value="VIC">Victoria</option>
+					<option value="WA"> Western Australia</option>
 				</select>
 			</td>
 		</tr>
@@ -284,7 +288,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 				<img src="/images/sm_cross.png" alt="Blank Input" style="cursor:pointer" title="Blank the BBox value"></span>
 			</td>
 			<td style="width:80%; padding-top:10px">
-			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:12px;" value="135.703125,-29.840644,138.339844,-26.745610"> 
+			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:12px;" value="139.4,-30.8,140.5,-29.7"> 
 			<img src="/images/bbox_finder_1.png" height="25" alt="BBox Finder" style="cursor:pointer" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)" width="40">
 			<img src="/images/copy_paste.png" width="20px" style="cursor:pointer" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
 			</td>
@@ -293,26 +297,52 @@ else url = 'm_geoglam_wrapper_kml.html';
 			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				Crosshair:
 			</td>
-		<td style="white-space:nowrap">
-					<input type="text" name="crosshair" style="width:300px; font-size:12px; background-color:#F7F5D7; border-bottom-style:none" title="Move the crosshair into position or manually enter W,S coordinates.">
-					<select name="zoom_size" style="height:23px" title="Number of tiles around the crosshair" class="auto-style1">
-						<option value="1">1</option>
-						<option value="5">5</option>
-						<option value="10" selected="selected">10</option>
-						<option value="15">15</option>
-						<option value="20">20</option>
-						<option value="25">25</option>
-					</select>&nbsp;
-					<img src="/images/crosshair.png" alt="Crosshair" style="cursor:pointer" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair();">
+			<td style="white-space:nowrap">
+						<input type="text" name="crosshair" style="width:300px; font-size:12px; background-color:#F7F5D7; border-bottom-style:none" title="Move the crosshair into position or manually enter W,S coordinates." value="139.937934,-30.296345">
+						<select name="zoom_size" style="height:23px" title="Number of tiles around the crosshair" class="auto-style1">
+							<option value="1" selected="">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+							<option value="10">10</option>
+							<option value="15">15</option>
+							<option value="20">20</option>
+							<option value="25">25</option>
+						</select>&nbsp;
+						<img src="/images/crosshair.png" alt="Crosshair" style="cursor:pointer" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair(4);">
+			</td>
+		</tr>
+		<tr>
+			<td style="width:20%; text-align:right; font-weight:bold; font-size:12px; padding-right:10px">
+				Label:
+			</td>
+		<td>
+					<input type="text" name="region_title" title="Label for the crosshair point" style="width:300px; font-size:12px; background-color:#F7F5D7">
 		</td>
 		</tr>
 		<tr>
+			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px">
+				Resolution:
+			</td>
+			<td style="width:1%; padding-top:10px">
+				<span id="resolutions" style="display:block;">
+					<select name="resolution" style="width:300px; height:23px; background-color:#F7F5D7; font-size:12px;" onchange="CountTheTiles(this.form)">
+						<option value="3">Standard (3&deg;x3&deg; Tiles)</Option>
+						<option value="0.1" selected="">High (0.1°x0.1° Tiles)</Option>
+						<option value="0.02">Ultra (0.02&deg;x0.02&deg; Tiles)</Option>
+					</select>
+				</span>
+			</td>
+		</tr>
+		<tr>
+		<td>&nbsp;</td>
 			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				Overlay(s):
 				<span onmousedown="BlankOverlaysInputBox(document.forms.google_earth.key_value_pairs)">
 				<img src="/images/sm_cross.png" alt="Blank Selection" style="cursor:pointer" title="Delete the selected overlays"></span>
 			</td>
-		<td style="white-space:nowrap">
+		<td style="white-space:nowrap; padding-top:10px">
 			<select name="key" onchange="FillTheValues(this)" style="height:20px; width:148px; background-color:#F7F5D7">
 				<option value="">key</option>
 				<option value="natural">natural</option>
@@ -328,13 +358,13 @@ else url = 'm_geoglam_wrapper_kml.html';
 					<option value="">values</option>
 				</select> 
 			</span>
-			<span id="selected_key_values" style="display:block"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7"></textarea></span>
+			<span id="selected_key_values" style="display:block"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7">natural|water</textarea></span>
 		</td>
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
 			<td style="width:100%; text-align:left; font-weight:bold; padding-right:10px" colspan="2">
-				<input type="button" value="Display" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
+				<input type="button" value="Display" style="color:blue" onclick="ValidateInput(document.forms.google_earth,4);">
 				<span id="kml" style="display: none"></span>
 				<span id="killed" style="display: none"></span>
 			</td>

@@ -13,16 +13,16 @@
 var cgi = "/cgi-bin/nww_kml.cgi"; 
 function CrossHairHelp()
 {
-	alert("Click the 'GDAL' checkbox before clicking this crosshaor button.");
+	alert("Click the 'GDAL' checkbox before clicking the crosshair button.");
 }
 function createCookie() {
 	var days = 36500;
 	var cookiename = "GSKY-NWW-GEOGLAM";
 	var value = Math.floor((Math.random()*1000000000)+1);
 	if (days) {
-		var date = new Date();
-		date.setTime(date.getTime()+(days*24*60*60*1000));
-		var expires = "; expires="+date.toGMTString();
+	var date = new Date();
+	date.setTime(date.getTime()+(days*24*60*60*1000));
+	var expires = "; expires="+date.toGMTString();
 	}
 	else var expires = "";
 	document.cookie = cookiename+"="+value+expires+"; path=/";
@@ -35,6 +35,13 @@ function CSReadCookie()
 	{
 		createCookie();
 	}
+/*	
+	else
+	{
+		ajaxFunction(2);
+		return cookies;
+	}
+*/	
 }
 function DisplayNWW()
 {
@@ -66,7 +73,7 @@ function FillTheValues(item)
 	var key = item.value;	
 	var values = key_values[key];
 	var len = values.length;
-	var select_list = "<select name=\"value\" onchange=\"GetKeyValuePairs(this.form,this)\"  style=\"height:20px; width:148px; background-color:#F7F5D7\">\n	<option value=\"\">value</option>\n";
+	var select_list = "<select name=\"value\" onchange=\"GetKeyValuePairs(this.form,this)\"  style=\"height:35px; width:98px; background-color:#F7F5D7\">\n	<option value=\"\">value</option>\n";
 	for (var j=0; j < len; j++)
 	{
 		select_list += "	<option value=\"" + values[j] + "\" >" + values[j] + "</option>\n";
@@ -89,14 +96,14 @@ function Monify(value)
 
   return (str=="0")?"":(str.substring(0,len-2)+"."+str.substring(len-2,len));
 }
-function ZoomInAroundCrosshair(n)
+function ZoomInAroundCrosshair()
 {
-	if (!n) n = 1;
 	var form = document.forms.google_earth;
 	var crosshair = form.crosshair.value;
 	var zoom_size = form.zoom_size.value;
 	GetBBoxValue(2);
 	crosshair = document.forms.google_earth.crosshair.value;
+//alert(crosshair);	
 	if (!crosshair) return;
 	var xy = crosshair.split(",");
 	var x = xy[0];
@@ -111,7 +118,7 @@ function ZoomInAroundCrosshair(n)
 	y2 = y2.toFixed(1);
 	var bbox = x1 + "," + y1 + "," + x2 + "," + y2;
 	form.bbox.value = bbox;
-	ValidateInput(form,n);
+	ValidateInput(form,1);
 }
 function GetBBoxValue(box)
 {
@@ -139,7 +146,7 @@ function GetBBoxValue(box)
 		}
 		catch(err)
 		{
-			alert("Please open the BBox Finder and move the crosshair into place.");
+			alert("Please open the BBox Finder and move the crosshair into place." + err);
 			return;
 		}
 		// Create a string for the title
@@ -161,7 +168,9 @@ function ShowHideBBoxFinder (iframe)
 {
 	var rand = Math.floor((Math.random()*1000000)+1);
 	var iframe = document.getElementById('BBox_finder');
-	iframe.src = "/BBox?uid="+rand;
+	iframe.src = "/BBox/?uid="+rand;
+//	iframe.src = "http://bboxfinder.com/?uid="+rand;
+//alert(iframe.src);	
 	showHide('top_section', 'div', 'none'); showHide('nww_section', 'div', 'none'); showHide('Details', 'div', 'none'); showHideToggle('bbox_finder', 'div');
 	bbox_finder=document.getElementById('bbox_finder');
 	bbox_finder.scrollIntoView(true);
@@ -192,64 +201,16 @@ function ValidateInput(form,n)
 	showHide("kml",'span',"block");
 	ajaxFunction(n,form);
 }
-function CountTheTiles(form)
-{
-	// Called when the BBox cordinates change. Triggered by Region and Resolution drop boxes
-	// The purpose is to warn the user if the no. of tiles is too large.
-	var res = form.resolution.value;
-	var	bbox = form.bbox.value;
-	if (!bbox) return;
-	coords = bbox.split(",");
-	x = coords[2] - coords[0];
-	y = coords[3] - coords[1];
-	tiles_row = x/res;
-	tiles_col = y/res;
-	tot_tiles = Math.round(tiles_row * tiles_col);
-	if (tot_tiles == 0 && (tiles_row > 0 || tiles_col > 0)) { tot_tiles += 1; }
-	tot_tilesCommified = Commify(tot_tiles);
-	var warning = "Estimated no. of tiles: <b>" + tot_tilesCommified + "</b><br>\n";
-	var sec_per_tile = 0.7; // no. of seconds to fetch a 0.1x0.1 tile
-	var tot_sec = Math.round(tot_tiles * sec_per_tile); 
-	if (tot_sec < 3600)
-	{
-		var sec = tot_sec % 60;
-		if (sec < 10) { sec = "0" + sec; }
-		estime = Commify(Math.round(tot_sec / 60));
-		estime_str = estime + "m " + sec + "s";
-	}
-	else
-	{
-		var min = (tot_sec) % 60;
-		if (min < 10) { min = "0" + min; }
-		estime = Commify(Math.round(tot_sec / 3600));
-		estime_str = estime + "h " + min + "m";
-	}
-	warning += "Time: " + estime_str + "<br><br><br><small>";
-	if (res == 3 && tot_tiles > 100)
-	{
-		warning += "Some of these will be empty tiles and will be eliminated.<br><br><b><font style=\"color:#008000\">Safe to proceed.</font>";
-	}
-	if (res == 0.1 && tot_tiles > 50 && tot_tiles <= 125)
-	{
-		warning += "<big><big><b><font style=\"color:#800000\">Warning!</font></b><br><br></big></big>If not in cache, fetching these many tiles may take up to <font style=\"color:#0000FF\"><b>" + estime_str + "</b></font><br><br></small>";
-	}
-	if (res == 0.1 && tot_tiles > 125)
-	{
-		warning += "If not in cache, fetching these many tiles may take up to <font style=\"color:#0000FF\"><b>" + estime_str + "</b></font><br><b><font style=\"color:red\"></small><big><big>Unsafe to proceed.</big></big></font></b><br><br><small>Choose a smaller region.</small>";
-	}
-	document.getElementById('n_tiles').innerHTML = warning;
-//	showHide('n_tiles','block');
-}
-function GetCoordinates(form,item,dea)
+function GetCoordinates(form,item)
 {
 	if(item.value == 'LE')
 	{
 		form.bbox.value = '135.703125,-29.840644,138.339844,-26.745610';
 		return;
 	}
-	if(item.value == '' || item.value == 'UL')
+	if(item.value == '')
 	{
-		form.bbox.value = '139.4,-30.8,140.5,-29.7';
+		form.bbox.value = '';
 		return;
 	}
 	var region = [];
@@ -271,23 +232,6 @@ function GetCoordinates(form,item,dea)
 	region["EU"] = "-12.304688,35.460670,37.968750,58.631217";
 	region["EU_W"] = "-11.250000,35.889050,18.808594,58.722599";
 	region["EU_E"] = "19.511719,37.020098,40.429688,59.445075";
-	
-	if (dea == 'dea')
-	{
-		region = [];
-		region["AU"] = "112.324219,-44.087585,153.984375,-10.919618";
-		region["CBR"] = "149.049454,-35.430252,149.288156,-35.271971";
-		region["UL"] = "";
-		region["WA"] = "113.378906,-35.137879,129.067383,-13.539201";
-		region["NT"] = "128.979492,-26.076521,137.988281,-11.005904";
-		region["SA"] = "129.023438,-37.996163,141.064453,-25.958045";
-		region["QLD"] = "138.032227,-28.998532,154.467773,-10.919618";
-		region["NSW"] = "141.020508,-36.879621,153.984375,-27.916767";
-		region["ACT"] = "148.699951,-35.942436,149.479980,-35.119909";
-		region["VIC"] = "140.756836,-38.925229,151.435547,-34.415973";
-		region["TAS"] = "143.525391,-43.644026,148.623047,-39.504041";
-	}
-	
 	var bbox = region[item.value];
 	if (bbox)
 	{
@@ -297,10 +241,10 @@ function GetCoordinates(form,item,dea)
 function InsertTimes(item,prd)
 {
 	var i = item.selectedIndex;
-	var main_images = ['dea_australia.png','landsat5_geomedian.png','landsat7_geomedian.png','landsat8_geomedian.png','landsat5_nbar_16day.png','landsat5_nbart_16day.png','landsat7_nbar_16day.png','landsat7_nbart_16day.png','landsat8_nbar_16day.png','landsat8_nbart_16day.png','landsat5_nbar_daily.png','landsat5_nbart_daily.png','landsat7_nbar_daily.png','landsat7_nbart_daily.png','landsat8_nbar_daily.png','landsat8_nbart_daily.png','sentinel2_nbart_daily.png','wofs.png'];
+	var main_images = ['geoglam_fractional_cover.png', 'geoglam_fractional_cover.png', 'geoglam_total_cover.png', 'geoglam_monthly_fractional_cover.png', 'geoglam_monthly_total_cover.png', 'geoglam_monthly_decile_cover.png', 'geoglam_anomaly_fractional_cover.png' ];
 	var main_image = document.getElementById("main_image");	
 	var this_image = main_images[i];
-	main_image.src = '/images/' + this_image; 
+//	main_image.src = '/images/' + this_image; 
 	var times = [];
 	if (prd == 'dea')
 	{
@@ -335,7 +279,7 @@ function InsertTimes(item,prd)
 	}
 	var time = times[i].split(",");
 	len = time.length;
-	var option_line = "<select title=\"Select one or more dates.\" size=\"2\" style=\"width:300px; height:50px; font-size:10px;background-color:#F7F5D7\" name=\"time\" multiple=\"multiple\">\n";
+	var option_line = "<select title=\"Select one or more dates.\" size=\"2\" style=\"width:200px; height:50px; font-size:10px;background-color:#F7F5D7\" name=\"time\" multiple=\"multiple\">\n";
 	for (var j=0; j < len; j++)
 	{
 		date = time[j].replace("T00:00:00.000Z","");
@@ -403,8 +347,7 @@ function ajaxFunction(n,form,item)
 				iframe.src = "http://130.56.242.19/NASA/WorldWind/nww_kml.html?"+rand;
 				showHide("kml", "div", "block");
 				showHide('top_section', 'div', 'none'); 
-				showHide('nww_section', 'div', 'block');
-				iframe.scrollIntoView(true);
+				showHide('nww_section', 'div', 'block'); 
 			}
 			else
 			{
@@ -415,41 +358,13 @@ function ajaxFunction(n,form,item)
 		  }
 		  if (n == 2) // Cookie
 		  {
-//alert('n = ' + n + ' response = ' + response);
+alert('n = ' + n + ' response = ' + response);
 		  }
 		  if (n == 3) // Kill
 		  {
 			document.getElementById("killed").innerHTML = response;
 			showHide("killed", "block");
 			showHide("kml", 'span', "none");
-		  }
-		  if (n == 4) // KML - DEA
-		  {
-//alert('n = ' + n + ' response = ' + response);
-			var do_not_show_layers = response.indexOf("DO NOT SHOW LAYERS");
-			if(response && do_not_show_layers < 0)
-			{
-				document.getElementById("kml").innerHTML = response;
-				var rand = Math.floor((Math.random()*1000000)+1);
-				var iframe = document.getElementById('NWW');
-				iframe.src = "http://130.56.242.19/NASA/WorldWind/nww_kml.html?"+rand;
-				showHide("kml", "div", "block");
-				showHide('top_section', 'div', 'none'); 
-				showHide('nww_section', 'div', 'block'); 
-			}
-			else
-			{
-				if (do_not_show_layers >= 0)
-				{
-					document.getElementById("killed").innerHTML = "<font style=\"color:#FF0000\">No DEA tile in the selected region.</font>";
-				}
-				else
-				{
-					document.getElementById("killed").innerHTML = "<font style=\"color:#FF0000\">Timeout or crash of program. Try a smaller region.</font>";
-				}
-				showHide("killed", "block");
-				showHide("kml", 'span', "none");
-			}
 		  }
 	  }
 	}
@@ -491,36 +406,6 @@ function ajaxFunction(n,form,item)
 		pquery = pquery.replace("+","%2B");
 		var ran_number= Math.random()*5000;
 		url = cgi + "?Kill+" + ran_number + "+" + pquery;
-	}
-	if (n == 4) // KML for DEA
-	{
-		CSReadCookie();
-		var times = []; // Select multiple times
-		for ( var i = 0; i < form.time.selectedOptions.length; i++) 
-		{
-			times[i] = form.time.selectedOptions[i].value;
-		}
-		var bbox = form.bbox.value.replace(/ /g, '');
-//alert(bbox);
-		bbox = bbox.split(",");
-		var key_value_pairs = form.key_value_pairs.value;
-		key_value_pairs = key_value_pairs.replace(/\n/g, ";");
-		pquery = 
-		"&layer=" + form.layer.value +
-		"&region=" + form.region.value +
-		"&west=" + bbox[0] +
-		"&south=" + bbox[1] +
-		"&east=" + bbox[2] +
-		"&north=" + bbox[3] +
-		"&time=" + times +
-		"&bbox=" + bbox +
-		"&resolution=" + form.resolution.value +
-		"&region_title=" + form.region_title.value +
-		"&key_value_pairs=" + key_value_pairs;
-		pquery = escape(pquery);
-		pquery = pquery.replace("+","%2B");
-		var ran_number= Math.random()*5000;
-		url = cgi + "?DEA+" + ran_number + "+" + pquery;
 	}
 //alert('n = ' + n + ' url = ' + url);	
 //return;

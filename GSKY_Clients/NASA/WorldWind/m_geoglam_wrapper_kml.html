@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>GSKY via Google Earth Web</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<!--<link rel="stylesheet" href="custom.css">--> <!-- AVS: Added to change the styles of buttons -->
+
+<style>
+.content-container {
+	position: relative;
+	z-index: 99;
+	margin-top: 10px
+}
+.content-container article {
+	float: left;
+	width: 50%;
+	height: 320px;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #e7e6eb;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	margin-bottom: 6px
+}
+.content-container tldr {
+	float: right;
+	width: 100%;
+	height: 100%;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #e7e6eb;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	margin-bottom: 6px
+}
+.content-container details {
+	float: left;
+	width: 100%;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #e7e6eb;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	margin-bottom: 6px
+}
+.content-container article section {
+	margin: 0 0 30px 0
+}
+.content-container tldr section {
+	margin: 0 0 30px 0
+}
+.auto-style1 {
+	font-weight: bold;
+}
+.auto-style5 {
+	font-size: large;
+}
+.auto-style6 {
+	font-size: x-large;
+}
+</style>
+</head>
+<body style="background-image:url('/images/bg-page.png')">
+<div class="container">
+    <table class="jumbotron hidden-xs-" style="width:100%">
+		<tr>
+			<td style="width:20%">
+				<a href="https://nci.org.au//" target="_blank"><img alt="NCI" src="https://nci.org.au/wp-content/uploads/2018/09/NCI-Australia-and-Text-website-2-2.png" style="width:300px">
+			</td>
+		</tr>
+    </table>
+		<h3>GSKY-NWW: GEOGLAM</h3>
+	
+	(Click here for <a href="dea_wrapper_kml.html">DEA</a>)
+	<span style="cursor:pointer; padding-left:130px" onmousedown="DisplayNWW()"><img alt="NWW" src="/images/nww.png" title="Open/Close the NASA World Wind Pane" style="width:50px"></span>
+	<div id="nww_section" style="display:none">
+		<iframe id="NWW" style="width:100%; height:710px"></iframe>
+	</div>
+	
+	<div style="text-align:left; width:100%">
+	<form id="google_earth" name="google_earth">
+    <table class="jumbotron hidden-xs-" style="width:100%">
+		<tr>
+			<td style="width:50%; padding-top:5px;">
+				<select name="layer" style="width:200px; height:35px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this)">
+					<option value="global:c6:frac_cover|Fractional Cover C6">GEOGLAM - Fractional Cover C6</option>
+					<option value="global:c6:frac_cover|Fractional Cover C6">Fractional Cover C6</option>
+					<option value="global:c6:total_cover|Total Cover C6">Total Cover C6</option>
+					<option value="global:c6:monthly_frac_cover|Monthly Fractional Cover C6">Monthly Fractional Cover C6</option>
+					<option value="global:c6:monthly_total_cover|Monthly Total Cover C6">Monthly Total Cover C6</option>
+					<option value="global:c6:monthly_decile_total_cover|Monthly Decile Total Cover C6">Monthly Decile Total Cover C6</option>
+					<option value="global:c6:monthly_anom_frac_cover|Anomaly Fractional Cover C6">Anomaly Fractional Cover C6</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%; height:25px; padding-top:5px; white-space:nowrap">
+				<span id="times" style="display:block;">
+				<select name="time" style="width:200px; height:35px; background-color:#F7F5D7; font-size:12px;" multiple="multiple"><option value="">2018-11-01</Option></select></span>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%; padding-top:5px">
+				<select name="region" style="width:200px; height:35px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
+					<option value=""></option>
+					<option value="LE" selected="selected">Lake Eyre</option>
+					<option value="AU">Australia</option>
+					<option value="CBR">Canberra</option>
+					<option value="WA"> Western Australia</option>
+					<option value="NT">Northern Territory</option>
+					<option value="SA">South Australia</option>
+					<option value="QLD">Queensland</option>
+					<option value="NSW">NSW</option>
+					<option value="ACT">ACT</option>
+					<option value="VIC">Victoria</option>
+					<option value="TAS">Tasmania</option>
+					<option value="NZ">New Zealand</option>
+					<option value="US">USA</option>
+					<option value="US_W">US West Coast</option>
+					<option value="US_C">US Central</option>
+					<option value="US_E">US East Coast</option>
+					<option value="EU">Europe</option>
+					<option value="EU_W">Western Europe</option>
+					<option value="EU_E">Eastern Europe</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%; padding-top:5px">
+			<input type="text" name="bbox" style="width:200px; background-color:#F7F5D7; font-size:12px;" value="135.703125,-29.840644,138.339844,-26.745610"> 
+			<img src="/images/bbox_finder_1.png" alt="BBox Finder" style="cursor:pointer; width:60px; height:40px" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)">
+			<img src="/images/copy_paste.png" width="20px" style="cursor:pointer; display:none" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
+			</td>
+		</tr>
+		<tr>
+		<td style="white-space:nowrap; padding-top:5px">
+					<input type="text" name="crosshair" style="width:200px; font-size:12px; background-color:#F7F5D7; border-bottom-style:none" title="Move the crosshair into position or manually enter W,S coordinates.">
+					<select name="zoom_size" style="height:23px" title="Number of tiles around the crosshair" class="auto-style1">
+						<option value="1">1</option>
+						<option value="5">5</option>
+						<option value="10" selected="selected">10</option>
+						<option value="15">15</option>
+						<option value="20">20</option>
+						<option value="25">25</option>
+					</select>&nbsp;
+					<img src="/images/crosshair.png" alt="Crosshair" style="cursor:pointer; width:35px" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair();"><span class="auto-style6"></span>
+		</td>
+		</tr>
+		<tr>
+		<td style="white-space:nowrap; padding-top:5px">
+			<select name="key" onchange="FillTheValues(this)" style="height:35px; width:98px; background-color:#F7F5D7">
+				<option value="">key</option>
+				<option value="natural">natural</option>
+				<option value="building">building</option>
+				<option value="evacuation_center">evacuation_center</option>
+				<option value="highway">highway</option>
+				<option value="historic">historic</option>
+				<option value="junction">junction</option>
+				<option value="landuse">landuse</option>
+			</select>
+			<span id="key_values">
+				<select name="key_values" style="height:35px; width:98px; background-color:#F7F5D7">
+					<option value="">values</option>
+				</select> 
+			<br> 
+			</span>
+			<span id="selected_key_values" style="display:block; padding-top:5px"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:200px; height:50px; background-color:#F7F5D7"></textarea></span>
+		</td>
+		</tr>
+		<tr>
+			<td style="width:100%; font-weight:bold; padding-top:10px" colspan="2" class="text-left">
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<input type="button" value="Display" style="color:blue; height:50px; width:150px" onclick="ValidateInput(document.forms.google_earth,1);" class="auto-style5">
+				<span id="kml" style="display: none"></span>
+				<span id="killed" style="display: none"></span>
+			</td>
+		</tr>
+	</table>
+	</form>
+	</div>
+	<div id="bbox_finder" style="width:100%; display:none; color:blue; font-size:10px; font-weight:bold">
+		<span style="width:80%;">Click 
+		<img src="/images/square.png" alt="Square" title="Third button below for 'Draw a rectangle'"> and draw a box. Click the paste icon 
+		<img src="/images/copy_paste.png" width="15px" alt="Box" title="Third line from bottom"> to insert the value.</span><span style="width:20%; text-align:right; padding-left:10px">
+		<img src="/images/cross.png" alt="Close" title="Close BBox Finder" onclick="ShowHideBBoxFinder(document.BBox_finder)"></span><br>
+		<iframe id="BBox_finder" style="width:90%; height:200px"></iframe>
+	</div>
+    
+<small><small>
+Copyright &copy; 2019, <a href="http://nci.org.au/">NCI</a>, Canberra, ACT 2601, Australia.
+	<br>Author: Dr. Arapaut V. Sivaprasad. Created on: 27 June, 2019. </small></small>
+</div>
+<script src="/NASA/WorldWind/m_nww_kml_ajax.js"></script>
+</body>
+</html>

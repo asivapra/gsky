@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # Created on 31 Mar, 2019
-# Last edit: 19 Jun, 2019
+# Last edit: 26 Jun, 2019
 # By Dr. Arapaut V. Sivaprasad
 =pod
 This CGI is for creating the KMLs for displaying the GSKY layers via Google Earth Web.
@@ -44,6 +44,14 @@ sub debug
   print "$line<br>\n";
   if ($exit) { exit; }
 }
+sub d
+{
+  $line = $_[0];
+  $exit = $_[1];
+  if (!$headerAdded) { print "Content-type: text/html\n\n"; $headerAdded = 1; }
+  print "$line<br>\n";
+  if ($exit) { exit; }
+}
 sub Get_fields
 {
    my @pquery = split(/\&/, $pquery);
@@ -54,39 +62,6 @@ sub Get_fields
                 $$1 = $2; 
            }
    }
-}
-sub GroundOverlayTiles
-{
-	# To create the multi "GroundOverlay" KML for displaying the DEA tiles
-	my $n_tiles = $_[0];
-	my $title = $_[1];
-	$groundOverlay .= "
-<name>$region | $layer</name>	
-$placemark
-<!-- $n_tiles -->
-<GroundOverlay>
-    <name>$title</name>
-    <visibility>$visibility</visibility>
-    <Icon>
-        <href>
-            $tileUrl
-        </href>
-        <viewRefreshMode>onStop</viewRefreshMode>
-        <viewBoundScale>0.75</viewBoundScale>
-    </Icon>
-    <LatLonBox>
-        <west>$west</west>
-        <south>$south</south>
-        <east>$east</east>
-        <north>$north</north>
-    </LatLonBox>
-</GroundOverlay>
-	";
-	if ($create_tiles && !$skip_curl)
-	{
-		print OUT "echo $n_tiles\n"; $n_tiles--;
-		print OUT "curl '$gskyUrl&BBOX=0,0,0,0'\n";
-	}
 }
 sub GroundOverlay
 {
@@ -172,38 +147,6 @@ sub CreateMultipleKML
 		$visibility = 0; # Subsequent layers are set as visibility=0
 	}
 	$kml = $groundOverlay;
-}
-sub CreateMultipleTilesKML
-{
-	$visibility = 1; # Set this to 0 after the first layer. 
-	
-	open (INP, "<$aus_bboxes");
-	my @filecontent = <INP>;
-	close(INP);
-	my $len = $#filecontent;
-	open (OUT, ">$create_tiles_sh");
-	$nt = $len+1;
-	for (my $j=0; $j <= $len; $j++)
-	{
-		my $line = $filecontent[$j];
-		$line =~ s/\n//;
-		my @fields = split(/,/, $line);
-		$west = $fields[0];
-		$south = $fields[1];
-		$east = $fields[2];
-		$north = $fields[3];
-		pop(@fields);
-		$bbox = join(",", @fields);
-		GroundOverlay;
-	}
-	close(OUT);
-	$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-<Document>
-$groundOverlay	
-</Document>
-</kml>
-	";
 }
 sub GetPlacemark
 {
@@ -347,7 +290,7 @@ sub GetTheOverlays
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
-	<name>_______Layers_______</name>
+<name>_______Layers_______</name>
 	$kml
 $overlay
 <!-- End of Overlays -->
@@ -357,11 +300,31 @@ $overlay
 </Document>
 </kml>
 	";
-	$datadir = "/var/www/html/NASA/WorldWind/data/nww";
-	open(OUT, ">$datadir/nww.kml");
+#	$datadir = "/var/www/html/NASA/WorldWind/data/nww";
+#	open(OUT, ">$datadir/nww.kml");
+	open(OUT, ">$nww_kml");
 	print OUT "$xml\n";
 	close(OUT);
 }
+sub GetGSKYcookie
+{
+   my $name = "GSKY-NWW-GEOGLAM";
+   @words = ();
+   $cookies  = $ENV{'HTTP_COOKIE'};
+   if (!$cookies) { return; }
+
+   @cookiesArray = split (/;/, "$cookies");
+   foreach $cookieItem (@cookiesArray)
+   {
+      if ($cookieItem =~ /$name/)
+      {
+         @words = split (/=/, "$cookieItem");
+      }
+   }
+   $value = $words[1];
+   return $value;
+}
+
 sub do_main
 {
 #	$ENV{PERL5LIB} = "/root/perl5/lib/perl5";
@@ -428,8 +391,483 @@ sub do_main
 				$create_tiles = $fields[5];
 			}
 		}
+		sub GetLargeHash # Make a hash of the 3x3 tiles within the bbox
+		{
+			my $filename = $_[0];
+			my $rl = $_[1];
+			my $r = $_[2];
+			%tilesHash = {};
+			@bbox = split (/_/, $filename);
+			$m = int(1/$r);
+			my $w = int($bbox[0]) * $m;
+			my $s = int($bbox[1]) * $m;
+			my $e = (int($bbox[2]) - $r) * $m;
+			my $n = (int($bbox[3]) - $r) * $m;
+			for (my $j0 = $w; $j0 < $e; $j0++)
+			{
+				$j = $j0/$m;
+				for (my $k0 = $s; $k0 < $n; $k0++)
+				{
+					$fin = 0;
+					$k = $k0/$m;
+					my $w1 = sprintf("%.1f", $j); 
+					my $s1 = sprintf("%.1f", $k);
+					my $e1 = sprintf("%.1f", $j+$r);
+					my $n1 = sprintf("%.1f", $k+$r);
+					$sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+					if ($rl == 3) 
+					{ 
+						$ii++;
+						$tilesHash{$sub_tile} = 0; 
+					}
+					if ($rl == $resolution) 
+					{ 
+						$ii++;
+						$tilesHash{$sub_tile} = 1; 
+					}
+				}
+			}
+		}
+		sub GetHash # Make a hash of the 0.1x0.1 tiles within the bbox
+		{
+			my $filename = $_[0];
+			my $rl = $_[1];
+			my $r = $_[2];
+			my @bbox = split (/_/, $filename);
+			my $m = int(1/$r);
+			my $w = int($bbox[0] * $m);
+			my $s = int($bbox[1] * $m);
+			my $ee = int($bbox[2] * $m);
+			my $n = int($bbox[3] * $m);
+			for (my $j0 = $w; $j0 < $ee; $j0++)
+			{
+				my $j = $j0/$m;
+				for (my $k0 = $s; $k0 < $n; $k0++)
+				{
+					my $k = $k0/$m;
+					my $w1 = sprintf("%.2f", $j); 
+					my $s1 = sprintf("%.2f", $k);
+					my $e1 = sprintf("%.2f", $j+$r);
+					my $n1 = sprintf("%.2f", $k+$r);
+					my $sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+					$tilesHash{$sub_tile} = 1; 
+					if($n1 >= $n) { last; }
+				}
+			}
+		}
+		sub GetTheLargeTile
+		{
+			my $i = 3; # The tile res
+			my $r = $_[4];  
+			my $m = int(1/$r);
+			my $w = int($_[0]/$m);
+			my $s = int($_[1]/$m);
+			my $e = int($_[2]/$m);
+			my $n = int($_[3]/$m);
+
+			$w -= ($w % $i);
+			$s -= ($s % $i);
+			$e -= ($e % $i);
+			$n -= ($n % $i);
+			$ii = 0;
+			for (my $j = $w; $j < $e; $j+=$i)
+			{
+				for (my $k = $s; $k < $n; $k+=$i)
+				{
+					$w1 = sprintf("%.1f", $j); 
+					$s1 = sprintf("%.1f", $k);
+					$e1 = sprintf("%.1f", $j+$i);
+					$n1 = sprintf("%.1f", $k+$i);
+					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+					GetLargeHash($tile_filename,3,$r);
+					$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/3/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_3" . ".png";
+					if($n1 >= $n) { last; }
+				}
+			}
+		}
+		sub CountTheTiles 
+		{
+			my $w = $_[0];
+			my $s = $_[1];
+			my $e = $_[2];
+			my $n = $_[3];
+			my $r = $resolution;
+			my $m = int(1/$r);
+			GetTheLargeTile($w,$s,$e,$n,$r); # Find the 3x3 tile that covers this bbox
+			my $n_tiles = 0;
+			for (my $j0 = $w; $j0 < $e; $j0++)
+			{
+				$j = $j0/$m;
+				for (my $k0 = $s; $k0 < $n; $k0++)
+				{
+					$fin = 0;
+					my $k = $k0/$m;
+					my $w1 = sprintf("%.2f", $j); 
+					my $s1 = sprintf("%.2f", $k);
+					my $e1 = sprintf("%.2f", $j+$r);
+					my $n1 = sprintf("%.2f", $k+$r);
+					my $this_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+					my $tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+					GetHash($tile_filename,$resolution,$r);
+					if ($tilesHash{$this_tile}) # %tilesHash is global
+					{
+						$n_tiles++;
+					}
+				}
+			}
+			&debug("Actual number of tiles: <big>$n_tiles</big>");
+			if ($n_tiles <= 0)
+			{
+				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
+			}
+
+#			if ($n_tiles > 50 && $n_tiles <= 100)
+#			{
+#				&debug("<font style=\"color:red; font-size:12px\">This could take a long time to fetch the tiles.<br>Please consider choosing a smaller region or a lower resolution.</font>");
+#			}
+			
+			if ($n_tiles > 125)
+			{
+				&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
+				&debug("<font style=\"color:#008000; font-size:12px\">Giving Up!</font>");
+				exit;
+			}
+		}
+		sub GroundOverlayTiles
+		{
+			my @fields = split(/,/,$bbox);
+			my $west = $fields[0];
+			my $south = $fields[1];
+			my $east = $fields[2];
+			my $north = $fields[3];
+			my $x = ($east+$west)/2.0;
+			my $y = ($north+$south)/2.0;
+			my $eye = abs($south - $north)*150*1000;
+	$lookAt = "
+	<LookAt>
+		<longitude>$x</longitude>
+		<latitude>$y</latitude>
+		<altitude>$eye</altitude>
+	</LookAt>
+	";
+			# To create the multi "GroundOverlay" KML for displaying the DEA tiles
+			my $n_tiles = $_[0];
+			my $title = $_[1];
+			$groundOverlay .= "
+			$placemark0
+<!-- $n_tiles -->
+<GroundOverlay>
+	<name>$title</name>
+	<visibility>$visibility</visibility>
+	<Icon>
+		<href>
+			$tileUrl
+		</href>
+		<viewRefreshMode>onStop</viewRefreshMode>
+		<viewBoundScale>0.75</viewBoundScale>
+	</Icon>
+	$lookAt
+	<LatLonBox>
+		<west>$west</west>
+		<south>$south</south>
+		<east>$east</east>
+		<north>$north</north>
+	</LatLonBox>
+</GroundOverlay>
+";
+			if ($create_tiles && !$skip_curl)
+			{
+				print OUT "echo $n_tiles\n"; $n_tiles--;
+				print OUT "curl '$gskyUrl&BBOX=0,0,0,0'\n";
+			}
+		}
+		sub Folder_groundOverlay
+		{
+			my $action = $_[0];
+			if ($action == 1)
+			{
+				my @fields = split(/,/,$bbox);
+				my $west = $fields[0];
+				my $south = $fields[1];
+				my $east = $fields[2];
+				my $north = $fields[3];
+				my $x = ($east+$west)/2.0;
+				my $y = ($north+$south)/2.0;
+				my $eye = abs($south - $north)*150*1000;
+				$groundOverlay = "
+<Folder>
+<visibility>1</visibility>
+<name>$title</name>
+<LookAt>
+	<longitude>$x</longitude>
+	<latitude>$y</latitude>
+	<altitude>$eye</altitude>
+</LookAt>
+";
+			}
+			if ($action == 2)
+			{
+				$groundOverlay .= "</Folder>\n";
+			}
+		}
+		sub DEA_High
+		{
+			my $layer = $_[0];
+			my $title = $_[1];
+			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
+			my @bbox = split(/,/, $bbox);
+			my $r = $resolution;
+			my $m = int(1/$r);
+			my $w = int($bbox[0] * $m);
+			my $s = int($bbox[1] * $m);
+			my $e = int($bbox[2] * $m);
+			my $n = int($bbox[3] * $m);
+			my $ct0 = time();
+			CountTheTiles($w,$s,$e,$n);
+			my @keys = sort keys %tilesHash;
+			my $n_tiles = 0;
+			Folder_groundOverlay(1); # Start of grouping the "GroundOverlays" in a Folder
+=pod
+			my @fields = split(/,/,$bbox);
+			my $west = $fields[0];
+			my $south = $fields[1];
+			my $east = $fields[2];
+			my $north = $fields[3];
+			my $x = ($east+$west)/2.0;
+			my $y = ($north+$south)/2.0;
+			my $eye = abs($south - $north)*150*1000;
+			$groundOverlay = "
+<Folder>
+<visibility>1</visibility>
+<name>$title</name>
+<LookAt>
+	<longitude>$x</longitude>
+	<latitude>$y</latitude>
+	<altitude>$eye</altitude>
+</LookAt>
+";
+=cut
+			foreach my $key (@keys)
+			{
+				if($tilesHash{$key})
+				{
+					my $tile = $key;
+					$tile =~ s/_/,/g;
+					my @bbox = split(/,/,$tile);
+					$west = $bbox[0];
+					$south = $bbox[1];
+					$east = $bbox[2];
+					$north = $bbox[3];
+					$tile_file = "$localdir/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+					if (!-f $tile_file)
+					{
+						my $gskyFetchUrl = "http://$domain/cgi-bin/google_earth.cgi?WMS+$layer+$tile+$time+$r&BBOX=0,0,0,0";
+						`curl '$gskyFetchUrl'`; # Fetch and write the PNG file
+					}
+					my $size = -s $tile_file;
+					if ($size == 2132) { next; }
+					$n_tiles++;
+		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+					if ($callGsky)
+					{
+						$tileUrl = $gskyUrl;
+						$tileUrl =~ s/&/&amp;/gi;
+					}
+					$title = "$west,$south,$east,$north R$r";
+					GroundOverlayTiles($n_tiles,$title);
+					$placemark = ""; # Blank this for next round
+				}
+			}
+			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
+#			$groundOverlay .= "</Folder>\n";
+			my $ct1 = time();
+			$kml = "$groundOverlay";
+			if ($n_tiles)
+			{
+				my @fields = split(/,/,$bbox);
+				$west = $fields[0];
+				$south = $fields[1];
+				$east = $fields[2];
+				$north = $fields[3];
+				GetTheOverlays; # This is to get the OSM layers from Overpass
+				print "<small>Fetched multiple dates! See the map above.</small>";
+			}
+			else
+			{
+				print "DO NOT SHOW LAYERS";
+			}
+			exit;
+
+			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
+			$outfile =~ s/ /_/gi;
+			if ($create_tiles) 
+			{ 
+				close(OUT); # curl.sh
+			}
+			open (OUT, ">$docroot/NASA/WorldWind/data/nww/$outfile");
+			print OUT $kml;
+			close(OUT);
+
+			# Calculate the actual time
+			my $et = $ct1 - $ct0;
+			$etime = "$et sec.";
+			if ($et > 60) 
+			{ 
+				$etmin = int($et/60); 
+				my $etsec =$et % 60; 
+				if ($etsec < 10) { $etsec = "0$etsec"; }
+				$etime = "$etmin:$etsec min."; 
+			}
+			my $elapsed_time = "Elapsed Time: $etime";
+
+			print "$elapsed_time<br>\n";
+			print "<small><a href=\"$url/$outfile?$$\">$outfile</a></small>";
+			exit;
+		}
+		sub CountTheTilesLow 
+		{
+			my $w = $_[0];
+			my $s = $_[1];
+			my $e = $_[2];
+			my $n = $_[3];
+			my $r = $_[4];
+			my $layer = $_[5];
+			$n_tiles = 0;
+			for (my $j = $w; $j < $e; $j+=$r)
+			{
+				for (my $k = $s; $k < $n; $k+=$r)
+				{
+					$w1 = sprintf("%.1f", $j); 
+					$s1 = sprintf("%.1f", $k);
+					$e1 = sprintf("%.1f", $j+$r);
+					$n1 = sprintf("%.1f", $k+$r);
+					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+
+					$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+					if (!-f $tile_file)
+					{
+						if (!$create_tiles)
+						{
+							next;
+						}
+					}
+					$n_tiles++;
+					if($n1 >= $n) { last; }
+				}
+			}
+			&debug("Actual number of tiles: <big>$n_tiles</big>");
+			if ($n_tiles <= 0)
+			{
+				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
+			}
+#			if ($n_tiles > 300)
+#			{
+#				&debug("<font style=\"color:red; font-size:12px\">On a slow internet connection this could take a long time to display and/or crash Google Earth.<br>Please consider choosing a smaller region or a lower resolution.</font>");
+#			}
+		}
+		if ($sc_action eq "DEA")
+		{
+			$nww_kml = "$datadir/nww.kml";
+			$value = GetGSKYcookie;
+			if ($value)
+			{
+				$nww_kml = "$datadir/nww_$value\.kml";
+			}
+			# To create the DEA tiles. Called from dea.html as below.
+			# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,2);">
+			print "Content-type: text/html\n\n"; $headerAdded = 1;
+			$pquery = reformat($ARGV[2]);
+			$pquery =~ s/\\//gi;
+			Get_fields;	# Parse the $pquery to get all form input values
+			my $r = $resolution;
+			my @fields = split (/\|/, $layer);
+			my $layer = $fields[0];
+			my $title = $fields[1];
+			my $basetitle = $title;
+			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
+			else
+			{
+				$time =~ s/T.*$//gi;
+			}
+			my $i=$resolution; # Number of degrees for tile axis
+			if ($i < 1)
+			{
+				DEA_High($layer, $title);
+			}
+			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
+			my $w = int($bbox[0]);
+			my $s = int($bbox[1]);
+			my $e = int($bbox[2]);
+			my $n = int($bbox[3]);
+			# The w,s,e,n values must match the tiles created for this resolution
+			# The Lon/Lat values must be divisible with the value of resolution.
+			# For example, the 2x2 degree tiles will use even numbers for both Lon and Lat. e.g. 110,-44,112,-42; 112,-42,114,-40;
+			# The 3x3 tiles will use multiples of 3. e.g. 111,-45,114,-42; 111,-42,114,-39
+			$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
+			$s -= $s % $i; 
+			$e -= $e % $i; 
+			$n -= $n % $i; 
+			if ($w == $e) { $e+=$i; }
+			if ($s == $n) { $n+=$i; }
+			Folder_groundOverlay(1); # Start of grouping the "GroundOverlays" in a Folder
+			CountTheTilesLow($w,$s,$e,$n,$i,$layer);
+			for (my $j = $w; $j < $e; $j+=$i)
+			{
+				for (my $k = $s; $k < $n; $k+=$i)
+				{
+					$w1 = sprintf("%.1f", $j); 
+					$s1 = sprintf("%.1f", $k);
+					$e1 = sprintf("%.1f", $j+$i);
+					$n1 = sprintf("%.1f", $k+$i);
+					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+					if (!$create_tiles && !-f $tile_file)
+					{
+						next;
+					}
+					$tileUrl = "$cgi?PNG+$w1+$s1+$e1+$n1+$time+$i";
+					$west = $w1;
+					$south = $s1;
+					$east = $e1;
+					$north = $n1;
+#		            $gskyUrl = "http://$domain/cgi-bin/google_earth.cgi?WMS+$layer+$west,$south,$east,$north+$time+$r+$create_tiles";
+		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+					if ($callGsky)
+					{
+						$tileUrl = $gskyUrl;
+						$tileUrl =~ s/&/&amp;/gi;
+					}
+					$title = "$w1,$s1,$e1,$n1 R$i";
+					$n_tiles++;
+					GroundOverlayTiles($n_tiles,$title);
+					if($n1 == $n) { last; }
+				}
+			}
+			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
+			$kml = "$groundOverlay";
+			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
+			$outfile =~ s/ /_/gi;
+			if ($n_tiles)
+			{
+				GetTheOverlays; # This is to get the OSM layers from Overpass
+				print "<small>Fetched multiple dates! See the map above.</small>";
+			}
+			else
+			{
+				print "DO NOT SHOW LAYERS";
+			}
+			exit;
+		}
 		if ($sc_action eq "GEOGLAM")
 		{
+			$nww_kml = "$datadir/nww.kml";
+			$value = GetGSKYcookie;
+			if ($value)
+			{
+				$nww_kml = "$datadir/nww_$value\.kml";
+			}
 =pod
 	For GEOGLAM the call from geoglam.html will create a KML with GSKY call as..
          http://130.56.242.15/ows/ge?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=global:c6:frac_cover&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=112.324219,-44.087585,153.984375,-10.919618&amp;
@@ -440,6 +878,7 @@ sub do_main
 =cut
 			
 			print "Content-type: text/html\n\n"; $headerAdded = 1;
+#p($nww_kml);			
 			$pquery = reformat($ARGV[2]);
 			$pquery =~ s/\\//gi;
 			Get_fields;	# Parse the $pquery to get all form input values
@@ -518,47 +957,6 @@ sub do_main
 			</span>
 			";
 		}
-		sub CountTheTilesLow 
-		{
-			my $w = $_[0];
-			my $s = $_[1];
-			my $e = $_[2];
-			my $n = $_[3];
-			my $r = $_[4];
-			my $layer = $_[5];
-			$n_tiles = 0;
-			for (my $j = $w; $j < $e; $j+=$r)
-			{
-				for (my $k = $s; $k < $n; $k+=$r)
-				{
-					$w1 = sprintf("%.1f", $j); 
-					$s1 = sprintf("%.1f", $k);
-					$e1 = sprintf("%.1f", $j+$r);
-					$n1 = sprintf("%.1f", $k+$r);
-					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-					$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					if (!-f $tile_file)
-					{
-						if (!$create_tiles)
-						{
-							next;
-						}
-					}
-					$n_tiles++;
-					if($n1 >= $n) { last; }
-				}
-			}
-			&debug("Actual number of tiles: <big>$n_tiles</big>");
-			if ($n_tiles <= 0)
-			{
-				&debug("<font style=\"color:red; font-size:12px\">A. No tiles in the selected region. Please choose another region.</font>");
-			}
-#			if ($n_tiles > 300)
-#			{
-#				&debug("<font style=\"color:red; font-size:12px\">On a slow internet connection this could take a long time to display and/or crash Google Earth.<br>Please consider choosing a smaller region or a lower resolution.</font>");
-#			}
-		}
 		sub ElapsedTime
 		{
 			my $n = $_[0];
@@ -567,454 +965,20 @@ sub do_main
 			&debug ("$n. $et sec.");
 			$ct0 = $ct1;
 		}
-		sub CountTheTiles 
-		{
-			my $w = $_[0];
-			my $s = $_[1];
-			my $e = $_[2];
-			my $n = $_[3];
-			my $r = $resolution;
-			my $m = int(1/$r);
-			GetTheLargeTile($w,$s,$e,$n,$r); # Find the 3x3 tile that covers this bbox
-			my $n_tiles = 0;
-			for (my $j0 = $w; $j0 < $e; $j0++)
-			{
-				$j = $j0/$m;
-				for (my $k0 = $s; $k0 < $n; $k0++)
-				{
-					$fin = 0;
-					my $k = $k0/$m;
-					my $w1 = sprintf("%.2f", $j); 
-					my $s1 = sprintf("%.2f", $k);
-					my $e1 = sprintf("%.2f", $j+$r);
-					my $n1 = sprintf("%.2f", $k+$r);
-					my $this_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
-					my $tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					GetHash($tile_filename,$resolution,$r);
-					if ($tilesHash{$this_tile}) # %tilesHash is global
-					{
-						$n_tiles++;
-					}
-				}
-			}
-			&debug("Actual number of tiles: <big>$n_tiles</big>");
-			if ($n_tiles <= 0)
-			{
-				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
-			}
-
-			if ($n_tiles > 125)
-			{
-				&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
-				&debug("<font style=\"color:#008000; font-size:12px\">Giving Up!</font>");
-				exit;
-			}
-		}
-		sub DEA_High
-		{
-			my $layer = $_[0];
-			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
-			my @bbox = split(/,/, $bbox);
-			my $r = $resolution;
-			my $m = int(1/$r);
-			my $w = int($bbox[0] * $m);
-			my $s = int($bbox[1] * $m);
-			my $e = int($bbox[2] * $m);
-			my $n = int($bbox[3] * $m);
-			
-			# For High Res alone, we need a place mark in the middle of the tiled area.
-			my $pmx = $bbox[0] + (($bbox[2] - $bbox[0])/2);
-			my $pmy = $bbox[1] + (($bbox[3] - $bbox[1])/2);
-			$placemark = "<Placemark>
-	<name>$region_title</name>			
-	<Point>
-	  <coordinates>$pmx,$pmy,0</coordinates>
-	</Point>
-</Placemark>
-";
-			my $ct0 = time();
-			CountTheTiles($w,$s,$e,$n);
-			my @keys = sort keys %tilesHash;
-			my $n_tiles = 0;
-			foreach my $key (@keys)
-			{
-				if($tilesHash{$key})
-				{
-					my $tile = $key;
-					$tile =~ s/_/,/g;
-					my @bbox = split(/,/,$tile);
-					$west = $bbox[0];
-					$south = $bbox[1];
-					$east = $bbox[2];
-					$north = $bbox[3];
-					$n_tiles++;
-					$tile_file = "$localdir/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-					if (!-f $tile_file)
-					{
-						my $gskyFetchUrl = "http://$domain/cgi-bin/google_earth.cgi?WMS+$layer+$tile+$time+$r&BBOX=0,0,0,0";
-						`curl '$gskyFetchUrl'`; # Fetch and write the PNG file
-					}
-		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-					if ($callGsky)
-					{
-						$tileUrl = $gskyUrl;
-						$tileUrl =~ s/&/&amp;/gi;
-					}
-					$title = "$west,$south,$east,$north R$r";
-					GroundOverlayTiles($n_tiles,$title);
-					$placemark = ""; # Blank this for next round
-				}
-			}
-			my $ct1 = time();
-			$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-<Document>
-$groundOverlay	
-</Document>
-</kml>
-";
-			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
-			$outfile =~ s/ /_/gi;
-			if ($create_tiles) 
-			{ 
-				close(OUT); # curl.sh
-			}
-			open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-			print OUT $kml;
-			close(OUT);
-
-			# Calculate the actual time
-			my $et = $ct1 - $ct0;
-			$etime = "$et sec.";
-			if ($et > 60) 
-			{ 
-				$etmin = int($et/60); 
-				my $etsec =$et % 60; 
-				if ($etsec < 10) { $etsec = "0$etsec"; }
-				$etime = "$etmin:$etsec min."; 
-			}
-			my $elapsed_time = "Elapsed Time: $etime";
-
-			print "$elapsed_time<br>\n";
-			print "<small><a href=\"$url/$outfile?$$\">$outfile</a></small>";
-			exit;
-		}
-		if ($sc_action eq "DEA") # For DEA from dea.html
-		{
-			# To create the DEA tiles. Called from dea.html as below.
-			# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,2);">
-			print "Content-type: text/html\n\n"; $headerAdded = 1;
-			$pquery = reformat($ARGV[2]);
-			$pquery =~ s/\\//gi;
-			Get_fields;	# Parse the $pquery to get all form input values
-			my $r = $resolution;
-			my @fields = split (/\|/, $layer);
-			my $layer = $fields[0];
-			my $title = $fields[1];
-			my $basetitle = $title;
-			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
-			else
-			{
-				$time =~ s/T.*$//gi;
-			}
-			my $create_tiles_dir = "$localdir/GEWeb/DEA_Layers/$layer/$time/$r";
-#&debug($create_tiles_dir);
-			if (!-d "$create_tiles_dir")
-			{
-				`mkdir -p "$create_tiles_dir"`;
-			}
-			if ($create_tiles) 
-			{ 
-				open (OUT, ">$create_tiles_dir/$create_tiles_sh"); 
-				print OUT "echo \"$create_tiles_dir/$create_tiles_sh\"\n";
-			}
-			my $i=$resolution; # Number of degrees for tile axis
-			if ($i < 1)
-			{
-				DEA_High($layer);
-			}
-			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
-			my $w = int($bbox[0]);
-			my $s = int($bbox[1]);
-			my $e = int($bbox[2]);
-			my $n = int($bbox[3]);
-			# The w,s,e,n values must match the tiles created for this resolution
-			# The Lon/Lat values must be divisible with the value of resolution.
-			# For example, the 2x2 degree tiles will use even numbers for both Lon and Lat. e.g. 110,-44,112,-42; 112,-42,114,-40;
-			# The 3x3 tiles will use multiples of 3. e.g. 111,-45,114,-42; 111,-42,114,-39
-			$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
-			$s -= $s % $i; 
-			$e -= $e % $i; 
-			$n -= $n % $i; 
-			if ($w == $e) { $e+=$i; }
-			if ($s == $n) { $n+=$i; }
-			CountTheTilesLow($w,$s,$e,$n,$i,$layer);
-			for (my $j = $w; $j < $e; $j+=$i)
-			{
-				for (my $k = $s; $k < $n; $k+=$i)
-				{
-					$w1 = sprintf("%.1f", $j); 
-					$s1 = sprintf("%.1f", $k);
-					$e1 = sprintf("%.1f", $j+$i);
-					$n1 = sprintf("%.1f", $k+$i);
-					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-					if (!$create_tiles && !-f $tile_file)
-					{
-						next;
-					}
-					$tileUrl = "$cgi?PNG+$w1+$s1+$e1+$n1+$time+$i";
-					$west = $w1;
-					$south = $s1;
-					$east = $e1;
-					$north = $n1;
-#		            $gskyUrl = "http://$domain/cgi-bin/google_earth.cgi?WMS+$layer+$west,$south,$east,$north+$time+$r+$create_tiles";
-		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-					if ($callGsky)
-					{
-						$tileUrl = $gskyUrl;
-						$tileUrl =~ s/&/&amp;/gi;
-					}
-					$title = "$w1,$s1,$e1,$n1 R$i";
-					$n_tiles++;
-					GroundOverlayTiles($n_tiles,$title);
-					if($n1 == $n) { last; }
-				}
-			}
-			$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-<Document>
-$groundOverlay	
-</Document>
-</kml>
-";
-			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
-			$outfile =~ s/ /_/gi;
-			if ($create_tiles) 
-			{ 
-				print OUT "cd '$create_tiles_dir'\n"; 
-				print OUT "/var/www/cgi-bin/google_earth.cgi DeleteEmptyTiles\n"; 
-				print OUT "echo \"Finished!\"\n";
-				print OUT "/bin/date\n";
-				close(OUT); 
-				`mv "$create_tiles_dir/$create_tiles_sh" $localdir/GEWeb`;
-			}
-			open (OUT, ">$docroot/WebGoogleEarth/KML/$outfile");
-			print OUT $kml;
-			close(OUT);
-			print "<span style=\"font-family:arial; font-size:12px\">\n";
-			print "<a href=\"$url/$outfile?$$\">$outfile</a>";
-			exit;
-		}
-		if ($sc_action eq "WMS") # This is called for create_tiles and DEA_HIGH.
-		{
-			$imgdir = "$localdir/GEWeb/DEA_Layers/$layer/$time/$r";
-			if (!-d $imgdir)
-			{
-				`mkdir -p $imgdir`;
-			}
-			$imgfile = "$imgdir/" . $bbox . "_" . $time . "_" . $r . ".png";
-			$imgurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/" . $bbox . "_" . $time . "_" . $r . ".png";
-			$imgfile =~ s/,/_/gi;
-			$imgurl =~ s/,/_/gi;
-			if (-f $imgfile && !$create_tiles)
-			{
-				print "Location: $imgurl\n\n";
-				exit;
-			}
-			else
-			{
-				$url = "https://gsky.nci.org.au/ows/dea?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&SRS=EPSG:4326&WIDTH=512&HEIGHT=512&LAYERS=$layer&STYLES=&TRANSPARENT=TRUE&FORMAT=image/png&BBOX=$bbox&TIME=$time" . "T00:00:00.000Z";
-				$png = `curl '$url'`;
-				if ($png)
-				{
-					open (OUT, ">$imgfile");
-					print OUT $png;
-					close (OUT);
-					if (!$create_tiles)
-					{
-						print "Location: $imgurl\n\n";
-					}
-					else
-					{
-						print "Content-type: text/html\n\n"; $headerAdded = 1;
-						print "Created: $ii. $imgfile\n";
-					}
-				}
-				exit;
-			}
-		}
-		sub CreateTilesForThisLayer
-		{
-			print "Content-type: text/html\n\n"; $headerAdded = 1;
-			my @times = split(/,/,$times);
-			my $len = $#filecontent;
-			foreach my $date (@times)
-			{
-				$date =~ s/T.*Z//g;
-				print "$date\n";
-				for (my $j=0; $j <= $len; $j++)
-				{
-					my $line = $filecontent[$j];
-					chop ($line);
-					$line =~ s/\$layer/$layer/g;
-					$line =~ s/\$date/$date/g;
-					my $res = `$line`;
-					if ($res) { print OUT "$res"; }
-				}
-			}
-		}
-		if ($sc_action eq "CreateAllTiles") # Read a file to create the tiles (3x3 deg) for all layers and time slices
-		{
-			open(INP, "<$localdir/GEWeb/create_tiles_tem.sh");
-			@filecontent = <INP>;
-			close(INP);
-			open (OUT, ">>/var/www/cgi-bin/logs.txt");
-			open (INP, "<$localdir/GEWeb/layers.txt");
-			@layers = <INP>;
-			close(INP);
-			foreach $line (@layers)
-			{
-				if($line =~ /^#/) { next; }
-				if($line =~ /Name:(.*)\n/)
-				{
-					$layer = $1;
-					&debug("layer = $layer");						
-				}
-				if($line =~ /Title:(.*)\n/)
-				{
-					$title = $1;
-				}
-				if($line =~ /Times:(.*)\n/)
-				{
-					$times = $1;
-					CreateTilesForThisLayer;
-				}
-			}
-			close(OUT);
-		}
-
-		sub GetTheLargeTile
-		{
-			my $i = 3; # The tile res
-			my $r = $_[4];  
-			my $m = int(1/$r);
-			my $w = int($_[0]/$m);
-			my $s = int($_[1]/$m);
-			my $e = int($_[2]/$m);
-			my $n = int($_[3]/$m);
-
-			$w -= ($w % $i);
-			$s -= ($s % $i);
-			$e -= ($e % $i);
-			$n -= ($n % $i);
-			$ii = 0;
-			for (my $j = $w; $j < $e; $j+=$i)
-			{
-				for (my $k = $s; $k < $n; $k+=$i)
-				{
-					$w1 = sprintf("%.1f", $j); 
-					$s1 = sprintf("%.1f", $k);
-					$e1 = sprintf("%.1f", $j+$i);
-					$n1 = sprintf("%.1f", $k+$i);
-					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-					GetLargeHash($tile_filename,3,$r);
-					$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/3/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_3" . ".png";
-					if($n1 >= $n) { last; }
-				}
-			}
-		}
-		
-		sub GetLargeHash # Make a hash of the 3x3 tiles within the bbox
-		{
-			my $filename = $_[0];
-			my $rl = $_[1];
-			my $r = $_[2];
-			%tilesHash = {};
-			@bbox = split (/_/, $filename);
-			$m = int(1/$r);
-			my $w = int($bbox[0]) * $m;
-			my $s = int($bbox[1]) * $m;
-			my $e = (int($bbox[2]) - $r) * $m;
-			my $n = (int($bbox[3]) - $r) * $m;
-			for (my $j0 = $w; $j0 < $e; $j0++)
-			{
-				$j = $j0/$m;
-				for (my $k0 = $s; $k0 < $n; $k0++)
-				{
-					$fin = 0;
-					$k = $k0/$m;
-					my $w1 = sprintf("%.1f", $j); 
-					my $s1 = sprintf("%.1f", $k);
-					my $e1 = sprintf("%.1f", $j+$r);
-					my $n1 = sprintf("%.1f", $k+$r);
-					$sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
-					if ($rl == 3) 
-					{ 
-						$ii++;
-						$tilesHash{$sub_tile} = 0; 
-					}
-					if ($rl == $resolution) 
-					{ 
-						$ii++;
-						$tilesHash{$sub_tile} = 1; 
-					}
-				}
-			}
-		}
-		sub GetHash # Make a hash of the 0.1x0.1 tiles within the bbox
-		{
-			my $filename = $_[0];
-			my $rl = $_[1];
-			my $r = $_[2];
-			my @bbox = split (/_/, $filename);
-			my $m = int(1/$r);
-			my $w = int($bbox[0] * $m);
-			my $s = int($bbox[1] * $m);
-			my $ee = int($bbox[2] * $m);
-			my $n = int($bbox[3] * $m);
-#p("			for (my $j0 = $w; $j0 < $ee; $j0++)");
-			for (my $j0 = $w; $j0 < $ee; $j0++)
-			{
-				my $j = $j0/$m;
-				for (my $k0 = $s; $k0 < $n; $k0++)
-				{
-					my $k = $k0/$m;
-					my $w1 = sprintf("%.2f", $j); 
-					my $s1 = sprintf("%.2f", $k);
-					my $e1 = sprintf("%.2f", $j+$r);
-					my $n1 = sprintf("%.2f", $k+$r);
-					my $sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
-#p("sub_tile = $sub_tile");
-					$tilesHash{$sub_tile} = 1; 
-					if($n1 >= $n) { last; }
-				}
-			}
-		}
-		if ($sc_action eq "CountSubTiles") # Determine whether a 0.1x0.1 tile is within a 3x3 tile
-		{
-		}
 		if ($sc_action eq "Kill")
 		{
 			# Kill previous CGI
 			$pquery = reformat($ARGV[2]);
 			$pquery =~ s/\\//gi;
-#&debug("pquery=$pquery");
 			Get_fields;	# Parse the $pquery to get all form input values
-#			@fields = split (/\|/, $layer);
-#			$layer = $fields[0];
 			print "Content-type: text/html\n\n"; $headerAdded = 1;
 			$layer =~ s/\|/\\|/g;
 			my $pscmd = "ps -ef | grep \"/var/www/cgi-bin/nww_kml.cgi GEOGLAM.*$layer\" | grep -v grep";
 			my $psline = `$pscmd`;
 			$psline =~ tr/  / /s;
-#print "pscmd=$pscmd\n";
 			my @fields = split (/\s/, $psline);
 			$pid = $fields[1];
-#print "$pid\n";
 			my $thispid = $$;
-#print "$thispid\n";
 			if ($pid && $pid ne $thispid) 
 			{ 
 				`kill $pid`;
@@ -1026,35 +990,21 @@ $groundOverlay
 			}
 			exit;
 		}
-		if ($sc_action eq "Purge")
+		if ($sc_action eq "SESSID")
 		{
-			# To purge daily the high res tiles
-			chdir ($basedir);
-			$dir1 = `ls -FR | grep "/0.1"`;
-			$dir2 = `ls -FR | grep "/0.02"`;
-			$dirs = $dir1 . $dir2;
-			@dirs = split(/\n/, $dirs);
-			foreach $dir (@dirs)
-			{
-				$dir =~ s/://g;
-				chdir ("$dir");
-				$pwd = `pwd`;
-				@dir = split(/\//, $pwd);
-				$n = $#dir + 1;
-				if ($n != 7) { next; } # /local/GEWeb/DEA_Layers/landsat5_geomedian/1997-01-01/0.1
-				$png = `ls -1 *.png`;
-				`rm *.png`;
-				print "pwd = $pwd; $png\n";
-				chdir ($basedir);
-			}
+			# Testing the session cookie
+			$session = new CGI::Session("driver:File", $cgi, {Directory=>'/tmp'});
+			$sid = $session->id();
 		}
-		if ($sc_action eq "XML_Test") # For DEA. Delete the PNG files that are empty
+		if ($sc_action eq "CSReadCookie")
 		{
-			&XML_Test;
+			$value = GetGSKYcookie;
+			print "Content-type: text/html\n\n"; $headerAdded = 1;
+			print $value;			
 		}
 		else
 		{
-			&debug("INFO: This CGI must be called from within a web page!");
+			&debug("No sc_action");			
 		}
 	}
 }
@@ -1066,8 +1016,10 @@ $docroot = $ENV{DOCUMENT_ROOT};
 if (!$docroot) { $docroot = "/var/www/html"; }
 $cgi = "http://$domain/cgi-bin/nww_kml.cgi"; # On VM19
 $gskyUrl = "http://130.56.242.15/ows/ge";
+$gskyUrlDEA = "http://130.56.242.15/ows/dea";
 $basedir = "$docroot/GEWeb/DEA_Layers";
 $tmpdir = "/var/www/html/NASA/WorldWind/data/Tmp";
+$datadir = "/var/www/html/NASA/WorldWind/data/nww";
 $localdir = "/local";
 $url = "http://$domain";
 #$url = $ENV{HTTP_REFERER};
