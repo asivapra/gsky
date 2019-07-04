@@ -46,7 +46,7 @@ sub debug
 }
 sub d
 {
-  $line = $_[0];
+  $line = $_[0]; if (!$line) { $line = "OK"; }
   $exit = $_[1];
   if (!$headerAdded) { print "Content-type: text/html\n\n"; $headerAdded = 1; }
   print "$line<br>\n";
@@ -214,9 +214,15 @@ Sub to prepare the 'osm-script' and retrieve the overlay data.
 =cut
 	my $kv = $_[0];
 	my $overlay_name = $kv;
-	my @kv = split(/\|/, $kv);
+	$overlay_name =~ s/\|/_/g;
+	my @kv = split(/_/, $kv);
 	my $key = $kv[0];
 	my $value = $kv[1];
+	my @fields = split(/,/,$bbox);
+	my $west = $fields[0];
+	my $south = $fields[1];
+	my $east = $fields[2];
+	my $north = $fields[3];
 	my $osm_script = "
 <osm-script output=\"xml\" timeout=\"300\">
     <union>
@@ -300,8 +306,6 @@ $overlay
 </Document>
 </kml>
 	";
-#	$datadir = "/var/www/html/NASA/WorldWind/data/nww";
-#	open(OUT, ">$datadir/nww.kml");
 	open(OUT, ">$nww_kml");
 	print OUT "$xml\n";
 	close(OUT);
@@ -516,7 +520,7 @@ sub do_main
 					}
 				}
 			}
-			&debug("Actual number of tiles: <big>$n_tiles</big>");
+			&debug("Number of tiles: <big>$n_tiles</big>");
 			if ($n_tiles <= 0)
 			{
 				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
@@ -533,6 +537,36 @@ sub do_main
 				&debug("<font style=\"color:#008000; font-size:12px\">Giving Up!</font>");
 				exit;
 			}
+		}
+		sub CreateMultipleKML_DEA
+		{
+			# For the GEOGLAM Tiles. Called from geoglam.html as below.
+			# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,1);">
+			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
+			my $w = int($bbox[0]);
+			my $s = int($bbox[1]);
+			my $e = int($bbox[2]);
+			my $n = int($bbox[3]);
+			my $i=$resolution; # Number of degrees for tile axis
+			$visibility = 1; # Set this to 0 after the first layer. 
+			my @fields = split (/\|/, $layer);
+			my $layer = $fields[0];
+			my $title = $fields[1];
+			my $basetitle = $title;
+			my @times = split(/,/, $time);
+			my $len = $#times;
+			for (my $j=0; $j <= $len; $j++)
+			{
+CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
+				$date = $times[$j];
+				$date =~ s/T.*Z//gi;
+				$title = $region . "_" . $basetitle . " " . $date;
+				$time = "";
+				if($times[$j]) { $time="TIME=$times[$j]"; }
+				GroundOverlayTiles($n_tiles,$title);
+				$visibility = 0; # Subsequent layers are set as visibility=0
+			}
+			$kml = $groundOverlay;
 		}
 		sub GroundOverlayTiles
 		{
@@ -555,7 +589,6 @@ sub do_main
 			my $n_tiles = $_[0];
 			my $title = $_[1];
 			$groundOverlay .= "
-			$placemark0
 <!-- $n_tiles -->
 <GroundOverlay>
 	<name>$title</name>
@@ -576,15 +609,11 @@ sub do_main
 	</LatLonBox>
 </GroundOverlay>
 ";
-			if ($create_tiles && !$skip_curl)
-			{
-				print OUT "echo $n_tiles\n"; $n_tiles--;
-				print OUT "curl '$gskyUrl&BBOX=0,0,0,0'\n";
-			}
 		}
 		sub Folder_groundOverlay
 		{
 			my $action = $_[0];
+			my $title = $_[1];
 			if ($action == 1)
 			{
 				my @fields = split(/,/,$bbox);
@@ -628,26 +657,6 @@ sub do_main
 			my @keys = sort keys %tilesHash;
 			my $n_tiles = 0;
 			Folder_groundOverlay(1); # Start of grouping the "GroundOverlays" in a Folder
-=pod
-			my @fields = split(/,/,$bbox);
-			my $west = $fields[0];
-			my $south = $fields[1];
-			my $east = $fields[2];
-			my $north = $fields[3];
-			my $x = ($east+$west)/2.0;
-			my $y = ($north+$south)/2.0;
-			my $eye = abs($south - $north)*150*1000;
-			$groundOverlay = "
-<Folder>
-<visibility>1</visibility>
-<name>$title</name>
-<LookAt>
-	<longitude>$x</longitude>
-	<latitude>$y</latitude>
-	<altitude>$eye</altitude>
-</LookAt>
-";
-=cut
 			foreach my $key (@keys)
 			{
 				if($tilesHash{$key})
@@ -690,8 +699,12 @@ sub do_main
 				$south = $fields[1];
 				$east = $fields[2];
 				$north = $fields[3];
+				print "<small>Fetched the DEA tiles.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-				print "<small>Fetched multiple dates! See the map above.</small>";
+				if ($nplacemark) 
+				{
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+				}
 			}
 			else
 			{
@@ -733,7 +746,15 @@ sub do_main
 			my $n = $_[3];
 			my $r = $_[4];
 			my $layer = $_[5];
-			$n_tiles = 0;
+			my $time = $_[6];
+			$time =~ s/T.*$//gi;
+			my $i=$resolution; # Number of degrees for tile axis
+			$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
+			$s -= $s % $i; 
+			$e -= $e % $i; 
+			$n -= $n % $i; 
+			if ($w == $e) { $e+=$i; }
+			if ($s == $n) { $n+=$i; }
 			for (my $j = $w; $j < $e; $j+=$r)
 			{
 				for (my $k = $s; $k < $n; $k+=$r)
@@ -744,7 +765,6 @@ sub do_main
 					$n1 = sprintf("%.1f", $k+$r);
 					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
 					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-
 					$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
 					if (!-f $tile_file)
 					{
@@ -757,14 +777,10 @@ sub do_main
 					if($n1 >= $n) { last; }
 				}
 			}
-			&debug("Actual number of tiles: <big>$n_tiles</big>");
-			if ($n_tiles <= 0)
-			{
-				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
-			}
-#			if ($n_tiles > 300)
+#			&debug("Number of tiles: <big>$n_tiles</big>");
+#			if ($n_tiles <= 0)
 #			{
-#				&debug("<font style=\"color:red; font-size:12px\">On a slow internet connection this could take a long time to display and/or crash Google Earth.<br>Please consider choosing a smaller region or a lower resolution.</font>");
+#				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
 #			}
 		}
 		if ($sc_action eq "DEA")
@@ -786,11 +802,11 @@ sub do_main
 			my $layer = $fields[0];
 			my $title = $fields[1];
 			my $basetitle = $title;
-			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
-			else
-			{
-				$time =~ s/T.*$//gi;
-			}
+#			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
+#			else
+#			{
+#				$time =~ s/T.*$//gi;
+#			}
 			my $i=$resolution; # Number of degrees for tile axis
 			if ($i < 1)
 			{
@@ -811,39 +827,65 @@ sub do_main
 			$n -= $n % $i; 
 			if ($w == $e) { $e+=$i; }
 			if ($s == $n) { $n+=$i; }
-			Folder_groundOverlay(1); # Start of grouping the "GroundOverlays" in a Folder
-			CountTheTilesLow($w,$s,$e,$n,$i,$layer);
-			for (my $j = $w; $j < $e; $j+=$i)
+			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
+=pod
+			if ($time =~ /,/)
 			{
-				for (my $k = $s; $k < $n; $k+=$i)
+				# This is a multiple time selection
+				CreateMultipleKML_DEA;
+				print "<small>Fetched the GEOGLAM tiles for multiple dates.</small><br>\n";
+				GetTheOverlays; # This is to get the OSM layers from Overpass
+				if ($nplacemark) 
 				{
-					$w1 = sprintf("%.1f", $j); 
-					$s1 = sprintf("%.1f", $k);
-					$e1 = sprintf("%.1f", $j+$i);
-					$n1 = sprintf("%.1f", $k+$i);
-					$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-					if (!$create_tiles && !-f $tile_file)
-					{
-						next;
-					}
-					$tileUrl = "$cgi?PNG+$w1+$s1+$e1+$n1+$time+$i";
-					$west = $w1;
-					$south = $s1;
-					$east = $e1;
-					$north = $n1;
-#		            $gskyUrl = "http://$domain/cgi-bin/google_earth.cgi?WMS+$layer+$west,$south,$east,$north+$time+$r+$create_tiles";
-		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-					if ($callGsky)
-					{
-						$tileUrl = $gskyUrl;
-						$tileUrl =~ s/&/&amp;/gi;
-					}
-					$title = "$w1,$s1,$e1,$n1 R$i";
-					$n_tiles++;
-					GroundOverlayTiles($n_tiles,$title);
-					if($n1 == $n) { last; }
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
 				}
+				return;
+			}
+=cut
+			$visibility = 1;
+			$n_tiles = 0;
+			my @times = split(/,/,$time);
+			foreach $time(@times)
+			{
+				$time =~ s/T.*$//gi;
+				CountTheTilesLow($w,$s,$e,$n,$i,$layer,$time);
+				for (my $j = $w; $j < $e; $j+=$i)
+				{
+					for (my $k = $s; $k < $n; $k+=$i)
+					{
+						$w1 = sprintf("%.1f", $j); 
+						$s1 = sprintf("%.1f", $k);
+						$e1 = sprintf("%.1f", $j+$i);
+						$n1 = sprintf("%.1f", $k+$i);
+						$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+						$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+						if (!$create_tiles && !-f $tile_file)
+						{
+							next;
+						}
+						$tileUrl = "$cgi?PNG+$w1+$s1+$e1+$n1+$time+$i";
+						$west = $w1;
+						$south = $s1;
+						$east = $e1;
+						$north = $n1;
+						$gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+						if ($callGsky)
+						{
+							$tileUrl = $gskyUrl;
+							$tileUrl =~ s/&/&amp;/gi;
+						}
+						$title = "$time $w1,$s1";
+						$n_tiles++;
+						GroundOverlayTiles($n_tiles,$title);
+						$visibility = 0;
+						if($n1 == $n) { last; }
+					}
+				}
+			}
+			&debug("Number of tiles: <big>$n_tiles</big>");
+			if ($n_tiles <= 0)
+			{
+				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
 			}
 			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 			$kml = "$groundOverlay";
@@ -851,8 +893,12 @@ sub do_main
 			$outfile =~ s/ /_/gi;
 			if ($n_tiles)
 			{
+				print "<small>Fetched the DEA tiles.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-				print "<small>Fetched multiple dates! See the map above.</small>";
+				if ($nplacemark) 
+				{
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+				}
 			}
 			else
 			{
@@ -878,7 +924,7 @@ sub do_main
 =cut
 			
 			print "Content-type: text/html\n\n"; $headerAdded = 1;
-#p($nww_kml);			
+#p($time);			
 			$pquery = reformat($ARGV[2]);
 			$pquery =~ s/\\//gi;
 			Get_fields;	# Parse the $pquery to get all form input values
@@ -890,8 +936,12 @@ sub do_main
 			{
 				# This is a multiple time selection
 				CreateMultipleKML;
+				print "<small>Fetched the GEOGLAM tiles for multiple dates.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-				print "<small>Fetched multiple dates! See the map above.</small>";
+				if ($nplacemark) 
+				{
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+				}
 				exit;
 			}
 			else
@@ -904,8 +954,12 @@ sub do_main
 				}
 				$title = $basetitle . " " . $date;
 				CreateSingleKML;
+				print "<small>Fetched the GEOGLAM tiles for a single date.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
-				print "<small>Fetched! See the map above.</small>";
+				if ($nplacemark) 
+				{
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+				}
 			}
 			exit;
 		}

@@ -11,6 +11,12 @@
   // Copyright (c) 2011-2019 by AV Sivaprasad and WebGenie Software Pty Ltd.
 // Global variables
 var cgi = "/cgi-bin/nww_kml.cgi"; 
+function ChangeTreecontrols()
+{
+	var treeControls = document.getElementById('treeControls');
+	if (treeControls.style.height == '85px') treeControls.style.height = "685px";
+	else treeControls.style.height = "85px";
+}
 function CrossHairHelp()
 {
 	alert("Click the 'GDAL' checkbox before clicking this crosshaor button.");
@@ -46,7 +52,7 @@ function DisplayNWW()
 
 function GetKeyValuePairs(form,item)
 {
-	var key_value_pair = form.key.value + "|" + item.value;
+	var key_value_pair = form.key.value + "_" + item.value;
 	var selected_key_value_pairs = key_value_pair + "\n" + form.key_value_pairs.value;
 	form.key_value_pairs.value = selected_key_value_pairs;
 }
@@ -95,7 +101,7 @@ function ZoomInAroundCrosshair(n)
 	var form = document.forms.google_earth;
 	var crosshair = form.crosshair.value;
 	var zoom_size = form.zoom_size.value;
-	GetBBoxValue(2);
+	GetBBoxValue(2,0);
 	crosshair = document.forms.google_earth.crosshair.value;
 	if (!crosshair) return;
 	var xy = crosshair.split(",");
@@ -113,7 +119,7 @@ function ZoomInAroundCrosshair(n)
 	form.bbox.value = bbox;
 	ValidateInput(form,n);
 }
-function GetBBoxValue(box)
+function GetBBoxValue(box,n)
 {
 	var form = document.forms.google_earth;
 	if (box == 1)
@@ -128,7 +134,7 @@ function GetBBoxValue(box)
 			alert("Please open the BBox Finder and draw a box.");
 			return;
 		}
-		ValidateInput(form,1);
+		ValidateInput(form,n);
 	}
 	if (box == 2)
 	{
@@ -436,16 +442,17 @@ function ajaxFunction(n,form,item)
 				showHide("kml", "div", "block");
 				showHide('top_section', 'div', 'none'); 
 				showHide('nww_section', 'div', 'block'); 
+				iframe.scrollIntoView(true);
 			}
 			else
 			{
 				if (do_not_show_layers >= 0)
 				{
-					document.getElementById("killed").innerHTML = "<font style=\"color:#FF0000\">No DEA tile in the selected region.</font>";
+					document.getElementById("killed").innerHTML = response + " <font style=\"color:#FF0000\">No DEA tile in the selected region.</font><br>\n";
 				}
 				else
 				{
-					document.getElementById("killed").innerHTML = "<font style=\"color:#FF0000\">Timeout or crash of program. Try a smaller region.</font>";
+					document.getElementById("killed").innerHTML = response + " <font style=\"color:#FF0000\">Timeout or crash of program. Try a smaller region.</font><br>\n";
 				}
 				showHide("killed", "block");
 				showHide("kml", 'span', "none");
@@ -473,6 +480,7 @@ function ajaxFunction(n,form,item)
 		"&east=" + bbox[2] +
 		"&north=" + bbox[3] +
 		"&time=" + times +
+		"&bbox=" + bbox +
 		"&key_value_pairs=" + key_value_pairs;
 		pquery = escape(pquery);
 		pquery = pquery.replace("+","%2B");
@@ -501,7 +509,6 @@ function ajaxFunction(n,form,item)
 			times[i] = form.time.selectedOptions[i].value;
 		}
 		var bbox = form.bbox.value.replace(/ /g, '');
-//alert(bbox);
 		bbox = bbox.split(",");
 		var key_value_pairs = form.key_value_pairs.value;
 		key_value_pairs = key_value_pairs.replace(/\n/g, ";");
@@ -515,7 +522,6 @@ function ajaxFunction(n,form,item)
 		"&time=" + times +
 		"&bbox=" + bbox +
 		"&resolution=" + form.resolution.value +
-		"&region_title=" + form.region_title.value +
 		"&key_value_pairs=" + key_value_pairs;
 		pquery = escape(pquery);
 		pquery = pquery.replace("+","%2B");

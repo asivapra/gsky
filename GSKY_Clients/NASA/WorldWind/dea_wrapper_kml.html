@@ -232,9 +232,9 @@ else url = 'm_geoglam_wrapper_kml.html';
 					<option value="landsat8_geomedian|LS8 terrain corrected surface reflectance geometric median">LS8 terrain corrected surface reflectance geometric median</option>
 					<option value="landsat5_nbar_16day|16-day LS5 surface reflectance">16-day LS5 surface reflectance</option>
 					<option value="landsat5_nbart_16day|16-day LS5 terrain corrected surface reflectance">16-day LS5 terrain corrected surface reflectance</option>
-					<option value="landsat7_nbar_16day|16-day LS7 surface reflectance" selected="selected">16-day LS7 surface reflectance</option>
+					<option value="landsat7_nbar_16day|16-day LS7 surface reflectance">16-day LS7 surface reflectance</option>
 					<option value="landsat7_nbart_16day|16-day LS7 terrain corrected surface reflectance">16-day LS7 terrain corrected surface reflectance</option>
-					<option value="landsat8_nbar_16day|16-day LS8 surface reflectance">16-day LS8 surface reflectance</option>
+					<option value="landsat8_nbar_16day|16-day LS8 surface reflectance" selected="">16-day LS8 surface reflectance</option>
 					<option value="landsat8_nbart_16day|16-day LS8 terrain corrected surface reflectance">16-day LS8 terrain corrected surface reflectance</option>
 					<option value="landsat5_nbar_daily|Daily LS5 surface reflectance">Daily LS5 surface reflectance</option>
 					<option value="landsat5_nbart_daily|Daily LS5 terrain corrected surface reflectance">Daily LS5 terrain corrected surface reflectance</option>
@@ -257,7 +257,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 			<td style="width:80%; height:25px; padding-top:10px; white-space:nowrap">
 				<span id="times" style="display:block;">
 				<select name="time" style="width:300px; height:50px; background-color:#F7F5D7; font-size:12px;" multiple="multiple">
-				<option>1999-08-16</Option></select></span>
+				<option selected="">2013-06-07</Option></select></span>
 			</td>
 		</tr>
 		<tr>
@@ -290,7 +290,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 			<td style="width:80%; padding-top:10px">
 			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:12px;" value="139.4,-30.8,140.5,-29.7"> 
 			<img src="/images/bbox_finder_1.png" height="25" alt="BBox Finder" style="cursor:pointer" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)" width="40">
-			<img src="/images/copy_paste.png" width="20px" style="cursor:pointer" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
+			<img src="/images/copy_paste.png" width="20px" style="cursor:pointer" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1,4)">
 			</td>
 		</tr>
 		<tr>
@@ -313,6 +313,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 						<img src="/images/crosshair.png" alt="Crosshair" style="cursor:pointer" title="Zoom in around crosshair" onmousedown="ZoomInAroundCrosshair(4);">
 			</td>
 		</tr>
+<!--		
 		<tr>
 			<td style="width:20%; text-align:right; font-weight:bold; font-size:12px; padding-right:10px">
 				Label:
@@ -321,6 +322,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 					<input type="text" name="region_title" title="Label for the crosshair point" style="width:300px; font-size:12px; background-color:#F7F5D7">
 		</td>
 		</tr>
+-->
 		<tr>
 			<td style="width:20%; text-align:right; font-weight:bold; padding-right:10px">
 				Resolution:
@@ -328,15 +330,14 @@ else url = 'm_geoglam_wrapper_kml.html';
 			<td style="width:1%; padding-top:10px">
 				<span id="resolutions" style="display:block;">
 					<select name="resolution" style="width:300px; height:23px; background-color:#F7F5D7; font-size:12px;" onchange="CountTheTiles(this.form)">
-						<option value="3">Standard (3&deg;x3&deg; Tiles)</Option>
-						<option value="0.1" selected="">High (0.1°x0.1° Tiles)</Option>
+						<option value="3" selected="">Standard (3°x3° Tiles)</Option>
+						<option value="0.1">High (0.1°x0.1° Tiles)</Option>
 						<option value="0.02">Ultra (0.02&deg;x0.02&deg; Tiles)</Option>
 					</select>
 				</span>
 			</td>
 		</tr>
 		<tr>
-		<td>&nbsp;</td>
 			<td style="width:20%; text-align:right; font-weight:bold; padding:10px">
 				Overlay(s):
 				<span onmousedown="BlankOverlaysInputBox(document.forms.google_earth.key_value_pairs)">
@@ -358,7 +359,7 @@ else url = 'm_geoglam_wrapper_kml.html';
 					<option value="">values</option>
 				</select> 
 			</span>
-			<span id="selected_key_values" style="display:block"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7">natural|water</textarea></span>
+			<span id="selected_key_values" style="display:block"><textarea name="key_value_pairs" title="Select from above. Delete unwanted lines here." style="width:300px; height:100px; background-color:#F7F5D7">natural_water</textarea></span>
 		</td>
 		</tr>
 		<tr>
