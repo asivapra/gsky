@@ -301,7 +301,7 @@ sub GetTheOverlays
 $overlay
 <!-- End of Overlays -->
 	<Folder>
-		<name>_____Placemarks_____</name>
+		<name>_______Dates________</name>
 	</Folder>
 </Document>
 </kml>
@@ -492,6 +492,7 @@ sub do_main
 		}
 		sub CountTheTiles 
 		{
+			# To count the high res tiles enclosed in the BBox
 			my $w = $_[0];
 			my $s = $_[1];
 			my $e = $_[2];
@@ -525,11 +526,6 @@ sub do_main
 			{
 				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
 			}
-
-#			if ($n_tiles > 50 && $n_tiles <= 100)
-#			{
-#				&debug("<font style=\"color:red; font-size:12px\">This could take a long time to fetch the tiles.<br>Please consider choosing a smaller region or a lower resolution.</font>");
-#			}
 			
 			if ($n_tiles > 125)
 			{
@@ -538,6 +534,7 @@ sub do_main
 				exit;
 			}
 		}
+=pod		
 		sub CreateMultipleKML_DEA
 		{
 			# For the GEOGLAM Tiles. Called from geoglam.html as below.
@@ -557,7 +554,7 @@ sub do_main
 			my $len = $#times;
 			for (my $j=0; $j <= $len; $j++)
 			{
-CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
+				CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 				$date = $times[$j];
 				$date =~ s/T.*Z//gi;
 				$title = $region . "_" . $basetitle . " " . $date;
@@ -568,13 +565,14 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 			}
 			$kml = $groundOverlay;
 		}
+=cut
 		sub GroundOverlayTiles
 		{
-			my @fields = split(/,/,$bbox);
-			my $west = $fields[0];
-			my $south = $fields[1];
-			my $east = $fields[2];
-			my $north = $fields[3];
+#			my @fields = split(/,/,$bbox);
+#			my $west = $fields[0];
+#			my $south = $fields[1];
+#			my $east = $fields[2];
+#			my $north = $fields[3];
 			my $x = ($east+$west)/2.0;
 			my $y = ($north+$south)/2.0;
 			my $eye = abs($south - $north)*150*1000;
@@ -592,7 +590,7 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 <!-- $n_tiles -->
 <GroundOverlay>
 	<name>$title</name>
-	<visibility>$visibility</visibility>
+	<visibility>1</visibility>
 	<Icon>
 		<href>
 			$tileUrl
@@ -614,6 +612,8 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 		{
 			my $action = $_[0];
 			my $title = $_[1];
+			my $bbox0 = $_[2];
+			if($bbox0) { $bbox = $bbox0; }
 			if ($action == 1)
 			{
 				my @fields = split(/,/,$bbox);
@@ -623,10 +623,12 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 				my $north = $fields[3];
 				my $x = ($east+$west)/2.0;
 				my $y = ($north+$south)/2.0;
-				my $eye = abs($south - $north)*150*1000;
-				$groundOverlay = "
-<Folder>
-<visibility>1</visibility>
+				my $eye = abs($south - $north)*120*1000;
+				my $eye1 = abs($east - $west)*120*1000;
+				if ($eye1 > $eye) { $eye = $eye1; } 
+				$groundOverlay .= "
+<Folder> <!-- $bbox, $x, $y-->
+<visibility>$visibility</visibility>
 <name>$title</name>
 <LookAt>
 	<longitude>$x</longitude>
@@ -644,7 +646,11 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 		{
 			my $layer = $_[0];
 			my $title = $_[1];
-			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
+#			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
+			if (!$time)
+			{
+				&debug("No \$time specified. Exitting!",1);
+			}
 			my @bbox = split(/,/, $bbox);
 			my $r = $resolution;
 			my $m = int(1/$r);
@@ -652,11 +658,16 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 			my $s = int($bbox[1] * $m);
 			my $e = int($bbox[2] * $m);
 			my $n = int($bbox[3] * $m);
+			my $w1 = sprintf("%.1f", $w/$m); 
+			my $s1 = sprintf("%.1f", $s/$m);
+			my $e1 = sprintf("%.1f", $e/$m);
+			my $n1 = sprintf("%.1f", $n/$m);
 			my $ct0 = time();
 			CountTheTiles($w,$s,$e,$n);
 			my @keys = sort keys %tilesHash;
 			my $n_tiles = 0;
-			Folder_groundOverlay(1); # Start of grouping the "GroundOverlays" in a Folder
+			$bbox0 = "$w1,$s1,$e1,$n1"; # Recalculatd bbox for the tiles.
+			Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
 			foreach my $key (@keys)
 			{
 				if($tilesHash{$key})
@@ -675,7 +686,7 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 						`curl '$gskyFetchUrl'`; # Fetch and write the PNG file
 					}
 					my $size = -s $tile_file;
-					if ($size == 2132) { next; }
+					if ($size == 2132) { next; } # This is an empty tile image
 					$n_tiles++;
 		            $gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
 					if ($callGsky)
@@ -683,13 +694,12 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 						$tileUrl = $gskyUrl;
 						$tileUrl =~ s/&/&amp;/gi;
 					}
-					$title = "$west,$south,$east,$north R$r";
+					$title = "$time: $west,$south";
 					GroundOverlayTiles($n_tiles,$title);
 					$placemark = ""; # Blank this for next round
 				}
 			}
 			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
-#			$groundOverlay .= "</Folder>\n";
 			my $ct1 = time();
 			$kml = "$groundOverlay";
 			if ($n_tiles)
@@ -777,11 +787,6 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 					if($n1 >= $n) { last; }
 				}
 			}
-#			&debug("Number of tiles: <big>$n_tiles</big>");
-#			if ($n_tiles <= 0)
-#			{
-#				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
-#			}
 		}
 		if ($sc_action eq "DEA")
 		{
@@ -802,11 +807,6 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 			my $layer = $fields[0];
 			my $title = $fields[1];
 			my $basetitle = $title;
-#			if (!$time) { $time = "2013-03-17"; } # $time is global, coming from the HTML page
-#			else
-#			{
-#				$time =~ s/T.*$//gi;
-#			}
 			my $i=$resolution; # Number of degrees for tile axis
 			if ($i < 1)
 			{
@@ -827,28 +827,16 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 			$n -= $n % $i; 
 			if ($w == $e) { $e+=$i; }
 			if ($s == $n) { $n+=$i; }
-			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
-=pod
-			if ($time =~ /,/)
-			{
-				# This is a multiple time selection
-				CreateMultipleKML_DEA;
-				print "<small>Fetched the GEOGLAM tiles for multiple dates.</small><br>\n";
-				GetTheOverlays; # This is to get the OSM layers from Overpass
-				if ($nplacemark) 
-				{
-					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
-				}
-				return;
-			}
-=cut
+			$bbox0 = "$w,$s,$e,$n"; # Recalculatd bbox for the tiles.
 			$visibility = 1;
+			Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
 			$n_tiles = 0;
 			my @times = split(/,/,$time);
 			foreach $time(@times)
 			{
 				$time =~ s/T.*$//gi;
 				CountTheTilesLow($w,$s,$e,$n,$i,$layer,$time);
+				Folder_groundOverlay(1,$time,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
 				for (my $j = $w; $j < $e; $j+=$i)
 				{
 					for (my $k = $s; $k < $n; $k+=$i)
@@ -874,19 +862,26 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 							$tileUrl = $gskyUrl;
 							$tileUrl =~ s/&/&amp;/gi;
 						}
-						$title = "$time $w1,$s1";
+						$title = "$time: $w1,$s1";
 						$n_tiles++;
 						GroundOverlayTiles($n_tiles,$title);
 						$visibility = 0;
 						if($n1 == $n) { last; }
 					}
 				}
+				Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 			}
 			&debug("Number of tiles: <big>$n_tiles</big>");
 			if ($n_tiles <= 0)
 			{
 				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
 			}
+				$groundOverlay .= "
+<Folder>
+	<name>______Polygons______</name>
+</Folder>
+";
+
 			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 			$kml = "$groundOverlay";
 			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
@@ -924,7 +919,6 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 =cut
 			
 			print "Content-type: text/html\n\n"; $headerAdded = 1;
-#p($time);			
 			$pquery = reformat($ARGV[2]);
 			$pquery =~ s/\\//gi;
 			Get_fields;	# Parse the $pquery to get all form input values
@@ -959,31 +953,6 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 				if ($nplacemark) 
 				{
 					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
-				}
-			}
-			exit;
-		}
-		if ($sc_action eq "DeleteEmptyTiles") # For DEA. Delete the PNG files that are empty
-		{
-			# Usage: ./google_earth.cgi DeleteEmptyTiles resolution
-			# e.g. ./google_earth.cgi DeleteEmptyTiles 1
-			# Usage: /var/www/cgi-bin/google_earth.cgi
-			$td = ".";
-			$ls = `ls -l $td`;
-			my @ls = split(/\n/, $ls);
-			my $len = $#ls;
-			$n = 0;
-			for (my $j=0; $j <= $len; $j++)
-			{
-				my $line = $ls[$j];
-				$line =~ tr/  / /s;
-				my @fields = split(/ /, $line);
-				if ($fields[4] == 2132 || $fields[4] == 5141) # Empty tiles
-				{
-					$filename = "$td/$fields[8]"; 
-					$n++;
-					print "$n.	unlink ($filename) - $fields[4]\n";
-					unlink ($filename);
 				}
 			}
 			exit;
@@ -1044,22 +1013,7 @@ CountTheTilesLow($w,$s,$e,$n,$i,$layer,$times[$j]);
 			}
 			exit;
 		}
-		if ($sc_action eq "SESSID")
-		{
-			# Testing the session cookie
-			$session = new CGI::Session("driver:File", $cgi, {Directory=>'/tmp'});
-			$sid = $session->id();
-		}
-		if ($sc_action eq "CSReadCookie")
-		{
-			$value = GetGSKYcookie;
-			print "Content-type: text/html\n\n"; $headerAdded = 1;
-			print $value;			
-		}
-		else
-		{
-			&debug("No sc_action");			
-		}
+		&debug("No valid \$sc_action ($sc_action) in the GET call.");			
 	}
 }
 $|=1;
