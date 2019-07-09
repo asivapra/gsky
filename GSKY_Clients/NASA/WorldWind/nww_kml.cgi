@@ -67,66 +67,67 @@ sub GroundOverlay
 {
 	my $x = ($east+$west)/2.0;
 	my $y = ($north+$south)/2.0;
-	my $eye = abs($south - $north)*150*1000;
-	$lookAt = "
-	<LookAt>
-		<longitude>$x</longitude>
-		<latitude>$y</latitude>
-		<altitude>$eye</altitude>
-	</LookAt>
-	";
+	my $eye = abs($south - $north)*120*1000;
+	my $eye1 = abs($east - $west)*120*1000;
+	if ($eye1 > $eye) { $eye = $eye1; } 
+	$lookAt = "<LookAt>
+				<longitude>$x</longitude>
+				<latitude>$y</latitude>
+				<altitude>$eye</altitude>
+			</LookAt>";
 	$groundOverlay .= "
-<!-- $date -->
-<GroundOverlay>
-    <name>$title</name>
-    <visibility>$visibility</visibility>
-    <Icon>
-        <href>
-            $gskyUrl?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
-        </href>
-        <viewRefreshMode>onStop</viewRefreshMode>
-        <viewBoundScale>0.75</viewBoundScale>
-    </Icon>
-    $lookAt
-    <LatLonBox>
-        <west>$west</west>
-        <south>$south</south>
-        <east>$east</east>
-        <north>$north</north>
-    </LatLonBox>
-</GroundOverlay>
+		<!-- $date -->
+		<GroundOverlay>
+			<name>$title</name>
+			<visibility>$visibility</visibility>
+			<Icon>
+				<href>
+					$gskyUrl?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
+				</href>
+				<viewRefreshMode>onStop</viewRefreshMode>
+				<viewBoundScale>0.75</viewBoundScale>
+			</Icon>
+			$lookAt
+			<LatLonBox>
+				<west>$west</west>
+				<south>$south</south>
+				<east>$east</east>
+				<north>$north</north>
+			</LatLonBox>
+		</GroundOverlay>
 	";
 }
 sub CreateSingleKML
 {
 	my $x = ($east+$west)/2.0;
 	my $y = ($north+$south)/2.0;
-	my $eye = abs($south - $north)*150*1000;
-	$lookAt = "
-		<LookAt>
-			<longitude>$x</longitude>
-			<latitude>$y</latitude>
-			<altitude>$eye</altitude>
-		</LookAt>
+	my $eye = abs($south - $north)*120*1000;
+	my $eye1 = abs($east - $west)*120*1000;
+	if ($eye1 > $eye) { $eye = $eye1; } 
+	$lookAt = "<LookAt>
+				<longitude>$x</longitude>
+				<latitude>$y</latitude>
+				<altitude>$eye</altitude>
+			</LookAt>";
+	$groundOverlay .= "		<GroundOverlay>
+			<name>$title</name>
+			<visibility>1</visibility>
+			<Icon>
+				<href>
+					$gskyUrl?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
+				</href>
+				<viewRefreshMode>onStop</viewRefreshMode>
+				<viewBoundScale>0.75</viewBoundScale>
+			</Icon>
+			$lookAt
+			<LatLonBox>
+				<north>$north</north>
+				<south>$south</south>
+				<east>$east</east>
+				<west>$west</west>
+			</LatLonBox>
+		</GroundOverlay>
 	";
-	$kml = "<GroundOverlay>
-		<name>$title</name>
-		<visibility>1</visibility>
-		<Icon>
-			<href>
-				$gskyUrl?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
-			</href>
-			<viewRefreshMode>onStop</viewRefreshMode>
-			<viewBoundScale>0.75</viewBoundScale>
-		</Icon>
-		$lookAt
-		<LatLonBox>
-			<north>$north</north>
-			<south>$south</south>
-			<east>$east</east>
-			<west>$west</west>
-		</LatLonBox>
-	</GroundOverlay>";
 }
 
 sub CreateMultipleKML
@@ -140,12 +141,14 @@ sub CreateMultipleKML
 	{
 		$date = $times[$j];
 		$date =~ s/T.*Z//gi;
-		$title = $region . "_" . $basetitle . " " . $date;
+#		$title = $region . "_" . $basetitle . " " . $date;
+		$title = $date;
 		$time = "";
 		if($times[$j]) { $time="TIME=$times[$j]"; }
 		GroundOverlay;
 		$visibility = 0; # Subsequent layers are set as visibility=0
 	}
+	Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 	$kml = $groundOverlay;
 }
 sub GetPlacemark
@@ -180,12 +183,12 @@ sub GetPlacemark
 		if ($polygon)
 		{
 			$nplacemark++;
-			$placemark .= "<Placemark>\n" . 
-				"\t\t\t<name>$name</name>\n" . 
-				"\t\t\t<visibility>1</visibility>\n" .
-				"\t\t\t<Style><LineStyle><color>$outline</color></LineStyle><PolyStyle><fill>1</fill></PolyStyle></Style>\n" . 
-				"\t\t\t<MultiGeometry><Polygon>$polygon</Polygon></MultiGeometry>\n" . 
-				"\t\t</Placemark>\n\t\t";
+			$placemark .= "\t<Placemark>\n" . 
+				"\t\t\t\t<name>$name</name>\n" . 
+				"\t\t\t\t<visibility>1</visibility>\n" .
+				"\t\t\t\t<Style><LineStyle><color>$outline</color></LineStyle><PolyStyle><fill>1</fill></PolyStyle></Style>\n" . 
+				"\t\t\t\t<MultiGeometry><Polygon>$polygon</Polygon></MultiGeometry>\n" . 
+				"\t\t\t</Placemark>\n\t\t";
 		}
 	}
 	$placemark =~ s/\n\t\t$//gi;
@@ -262,21 +265,22 @@ Sub to prepare the 'osm-script' and retrieve the overlay data.
 	{
 		 $overlay .= "<!-- Visible Overlays -->
 	<Folder>
-		<name>$overlay_name: $nplacemark</name>
-		<visibility>1</visibility>
-		$lookAt
-		$placemark
-	</Folder>
-";
+		<name>__Dates &amp; Overlays_____</name>
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>1</visibility>
+			$lookAt
+			$placemark
+		</Folder>";
 	}
 	else
 	{
-		 $overlay .= "<!-- Unavailable Overlays -->
-	<Folder>
-		<name>$overlay_name: $nplacemark</name>
-		<visibility>0</visibility>
-	</Folder>
-";
+		 $overlay .= "
+<!-- Unavailable Overlays -->
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>0</visibility>
+		</Folder>";
 	}
 	
 }
@@ -296,12 +300,13 @@ sub GetTheOverlays
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
-<name>_______Layers_______</name>
-	$kml
+	<name>__GSKY Layers________</name>
+	$groundOverlay
 $overlay
 <!-- End of Overlays -->
-	<Folder>
-		<name>_______Dates________</name>
+		<Folder>
+			<name>__Polygons___________</name>
+		</Folder>
 	</Folder>
 </Document>
 </kml>
@@ -575,7 +580,9 @@ sub do_main
 #			my $north = $fields[3];
 			my $x = ($east+$west)/2.0;
 			my $y = ($north+$south)/2.0;
-			my $eye = abs($south - $north)*150*1000;
+			my $eye = abs($south - $north)*120*1000;
+			my $eye1 = abs($east - $west)*120*1000;
+			if ($eye1 > $eye) { $eye = $eye1; } 
 	$lookAt = "
 	<LookAt>
 		<longitude>$x</longitude>
@@ -626,20 +633,19 @@ sub do_main
 				my $eye = abs($south - $north)*120*1000;
 				my $eye1 = abs($east - $west)*120*1000;
 				if ($eye1 > $eye) { $eye = $eye1; } 
-				$groundOverlay .= "
-<Folder> <!-- $bbox, $x, $y-->
-<visibility>$visibility</visibility>
-<name>$title</name>
-<LookAt>
-	<longitude>$x</longitude>
-	<latitude>$y</latitude>
-	<altitude>$eye</altitude>
-</LookAt>
+				$groundOverlay .= "<Folder>
+		<visibility>$visibility</visibility>
+		<name>$title</name>
+		<LookAt>
+			<longitude>$x</longitude>
+			<latitude>$y</latitude>
+			<altitude>$eye</altitude>
+		</LookAt>
 ";
 			}
 			if ($action == 2)
 			{
-				$groundOverlay .= "</Folder>\n";
+				$groundOverlay .= "</Folder>";
 			}
 		}
 		sub DEA_High
@@ -667,7 +673,7 @@ sub do_main
 			my @keys = sort keys %tilesHash;
 			my $n_tiles = 0;
 			$bbox0 = "$w1,$s1,$e1,$n1"; # Recalculatd bbox for the tiles.
-			Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
+			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
 			foreach my $key (@keys)
 			{
 				if($tilesHash{$key})
@@ -829,14 +835,14 @@ sub do_main
 			if ($s == $n) { $n+=$i; }
 			$bbox0 = "$w,$s,$e,$n"; # Recalculatd bbox for the tiles.
 			$visibility = 1;
-			Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
+			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
 			$n_tiles = 0;
 			my @times = split(/,/,$time);
 			foreach $time(@times)
 			{
 				$time =~ s/T.*$//gi;
 				CountTheTilesLow($w,$s,$e,$n,$i,$layer,$time);
-				Folder_groundOverlay(1,$time,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
+				Folder_groundOverlay(1,$time); # Start of grouping the "GroundOverlays" in a Folder
 				for (my $j = $w; $j < $e; $j+=$i)
 				{
 					for (my $k = $s; $k < $n; $k+=$i)
@@ -869,7 +875,7 @@ sub do_main
 						if($n1 == $n) { last; }
 					}
 				}
-				Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
+#				Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 			}
 			&debug("Number of tiles: <big>$n_tiles</big>");
 			if ($n_tiles <= 0)
@@ -926,6 +932,8 @@ sub do_main
 			$layer = $fields[0];
 			$title = $fields[1];
 			$basetitle = $title;
+			$visibility = 1;
+			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
 			if ($time =~ /,/)
 			{
 				# This is a multiple time selection
@@ -946,8 +954,10 @@ sub do_main
 					$date =~ s/T.*Z//gi;
 					$time="TIME=$time";
 				}
-				$title = $basetitle . " " . $date;
+#				$title = $basetitle . " " . $date;
+				$title = $date;
 				CreateSingleKML;
+				Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 				print "<small>Fetched the GEOGLAM tiles for a single date.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
 				if ($nplacemark) 
@@ -955,6 +965,7 @@ sub do_main
 					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
 				}
 			}
+			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
 			exit;
 		}
 		if ($sc_action eq "Help") # Help to create the tiles. Out of date.
