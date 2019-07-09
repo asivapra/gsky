@@ -65,6 +65,7 @@ sub Get_fields
 }
 sub GroundOverlay
 {
+# The $lookAt is used for the active overlays
 	my $x = ($east+$west)/2.0;
 	my $y = ($north+$south)/2.0;
 	my $eye = abs($south - $north)*120*1000;
@@ -76,7 +77,6 @@ sub GroundOverlay
 				<altitude>$eye</altitude>
 			</LookAt>";
 	$groundOverlay .= "
-		<!-- $date -->
 		<GroundOverlay>
 			<name>$title</name>
 			<visibility>$visibility</visibility>
@@ -84,10 +84,7 @@ sub GroundOverlay
 				<href>
 					$gskyUrl?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
 				</href>
-				<viewRefreshMode>onStop</viewRefreshMode>
-				<viewBoundScale>0.75</viewBoundScale>
 			</Icon>
-			$lookAt
 			<LatLonBox>
 				<west>$west</west>
 				<south>$south</south>
@@ -99,6 +96,8 @@ sub GroundOverlay
 }
 sub CreateSingleKML
 {
+=pod	
+# The $lookAt is not used anywhere
 	my $x = ($east+$west)/2.0;
 	my $y = ($north+$south)/2.0;
 	my $eye = abs($south - $north)*120*1000;
@@ -109,6 +108,7 @@ sub CreateSingleKML
 				<latitude>$y</latitude>
 				<altitude>$eye</altitude>
 			</LookAt>";
+=cut			
 	$groundOverlay .= "		<GroundOverlay>
 			<name>$title</name>
 			<visibility>1</visibility>
@@ -116,10 +116,7 @@ sub CreateSingleKML
 				<href>
 					$gskyUrl?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
 				</href>
-				<viewRefreshMode>onStop</viewRefreshMode>
-				<viewBoundScale>0.75</viewBoundScale>
 			</Icon>
-			$lookAt
 			<LatLonBox>
 				<north>$north</north>
 				<south>$south</south>
@@ -149,6 +146,7 @@ sub CreateMultipleKML
 		$visibility = 0; # Subsequent layers are set as visibility=0
 	}
 	Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
+	$groundOverlay .= "\n\t<!-- End of GroundOverlays -->";
 	$kml = $groundOverlay;
 }
 sub GetPlacemark
@@ -263,24 +261,67 @@ Sub to prepare the 'osm-script' and retrieve the overlay data.
 	$placemark = GetPlacemark($kmlfile);
 	if ($placemark)
 	{
-		 $overlay .= "<!-- Visible Overlays -->
+		if (!$visibleOverlay)
+		{
+			if (!$layerTitleAdded)
+			{
+				$layerTitle1 = "\t<!-- Start of Overpass Overlays -->
 	<Folder>
-		<name>__Dates &amp; Overlays_____</name>
+		<name>__Dates &amp; Overlays_____</name>";
+				$layerTitleAdded = 1;
+			}
+		 $overlay .= "
+$layerTitle1
 		<Folder>
 			<name>$overlay_name: $nplacemark</name>
 			<visibility>1</visibility>
 			$lookAt
 			$placemark
 		</Folder>";
+		$visibleOverlay++;
+		}
+		else
+		{
+		 $overlay .= "
+		 
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>1</visibility>
+			$lookAt
+			$placemark
+		</Folder>";
+		$visibleOverlay++;
+		}
 	}
 	else
 	{
+		if (!$unavailableOverlay)
+		{
+			if (!$layerTitleAdded)
+			{
+				$layerTitle2 = "\t<!-- Start of Overpass Overlays -->
+	<Folder>
+		<name>__Dates &amp; Overlays_____</name>";
+				$layerTitleAdded = 1;
+			}
 		 $overlay .= "
-<!-- Unavailable Overlays -->
+$layerTitle2 
 		<Folder>
 			<name>$overlay_name: $nplacemark</name>
 			<visibility>0</visibility>
 		</Folder>";
+		$unavailableOverlay++;
+		}
+		else
+		{
+		 $overlay .= "
+		 
+		<Folder>
+			<name>$overlay_name: $nplacemark</name>
+			<visibility>0</visibility>
+		</Folder>";
+		$unavailableOverlay++;
+		}
 	}
 	
 }
@@ -297,17 +338,28 @@ sub GetTheOverlays
 		$outline = $outlines[$j];
 		GetAndCreatePlacemarks($key_value_pairs[$j]);
 	}
+	if ($overlay)
+	{
+		$polygons = "		<Folder>
+			<name>__Polygons___________</name>
+		</Folder>
+	</Folder>
+";
+	}
+	else
+	{
+		$polygons = "	<Folder>
+		<name>__Dates___________</name>
+	</Folder>
+";
+	}
 	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\">
 <Document>
 	<name>__GSKY Layers________</name>
 	$groundOverlay
 $overlay
-<!-- End of Overlays -->
-		<Folder>
-			<name>__Polygons___________</name>
-		</Folder>
-	</Folder>
+$polygons
 </Document>
 </kml>
 	";
@@ -336,18 +388,6 @@ sub GetGSKYcookie
 
 sub do_main
 {
-#	$ENV{PERL5LIB} = "/root/perl5/lib/perl5";
-#print "Content-type:text/html\n\n";
-#my $inc = `perl -e "print qq(@INC)"`;
-#print "$inc\n";
-#pd(\%INC,1);
-#exit;
-#&debugEnv;	
-#my $inc = `perl -e "print qq(@INC)"`;
-#print "Content-type:text/html\n\n";
-#print "$inc\n";
-#/usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib64/perl5 /usr/share/perl5 .
-#exit;
 	# Kill a runaway CGI, if any.
 	my $psline = `ps -ef | grep google_earth.cgi | grep -v grep`;
 	my @fields = split (/\s/, $psline);
@@ -719,7 +759,7 @@ sub do_main
 				GetTheOverlays; # This is to get the OSM layers from Overpass
 				if ($nplacemark) 
 				{
-					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs</font></small><br>\n";
 				}
 			}
 			else
@@ -898,7 +938,7 @@ sub do_main
 				GetTheOverlays; # This is to get the OSM layers from Overpass
 				if ($nplacemark) 
 				{
-					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs</font></small><br>\n";
 				}
 			}
 			else
@@ -933,16 +973,17 @@ sub do_main
 			$title = $fields[1];
 			$basetitle = $title;
 			$visibility = 1;
+			$groundOverlay = "<!-- Start of GroundOverlays -->\n\t";
 			Folder_groundOverlay(1,$title); # Start of grouping the "GroundOverlays" in a Folder
 			if ($time =~ /,/)
 			{
 				# This is a multiple time selection
 				CreateMultipleKML;
-				print "<small>Fetched the GEOGLAM tiles for multiple dates.</small><br>\n";
+				print "<small>Fetched the GEOGLAM layer for multiple dates.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
 				if ($nplacemark) 
 				{
-					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs</font></small><br>\n";
 				}
 				exit;
 			}
@@ -958,11 +999,12 @@ sub do_main
 				$title = $date;
 				CreateSingleKML;
 				Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
-				print "<small>Fetched the GEOGLAM tiles for a single date.</small><br>\n";
+				$groundOverlay .= "\n\t<!-- End of GroundOverlays -->";
+				print "<small>Fetched the GEOGLAM layer for a single date.</small><br>\n";
 				GetTheOverlays; # This is to get the OSM layers from Overpass
 				if ($nplacemark) 
 				{
-					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs.</font></small><br>\n";
+					print "<small>Fetched the overlays for: <font style=\"color:red; font-size:12px\">$key_value_pairs</font></small><br>\n";
 				}
 			}
 			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
