@@ -30,8 +30,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
-//"strconv"
-//"os/exec"
+"strconv"
+"os/exec"
 //"reflect"
 "bufio"
 
@@ -56,6 +56,7 @@ var (
 	verbose         = flag.Bool("v", false, "Verbose mode for more server outputs.")
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
+	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -74,6 +75,9 @@ func P(text string) {
     fmt.Printf("%+v\n", text)
 }
 func Py(n byte) {
+    fmt.Printf("%+v\n", n)
+}
+func Pe(n error) {
     fmt.Printf("%+v\n", n)
 }
 func Pf(n float64) {
@@ -99,6 +103,50 @@ func Pu(item  string) {
 	}
 	P(string(out))
 }
+
+// AVS: Functions to display continent-wide tiles
+func FloatToString(input_num float64) string {
+    // to convert a float number to a string
+    return strconv.FormatFloat(input_num, 'f', 6, 64)
+}
+var	aus [14]string
+func AusTiles() {
+	aus[0] = "135.0,-48.9224992638,146.25,-40.9798980696"
+	aus[1] = "146.25,-48.9224992638,157.5,-40.9798980696"
+	aus[2] = "112.5,-40.9798980696,123.75,-31.952162238"
+	aus[3] = "123.75,-40.9798980696,135.0,-31.952162238"
+	aus[4] = "135.0,-40.9798980696,146.25,-31.952162238"
+	aus[5] = "146.25,-40.9798980696,157.5,-31.952162238"
+	aus[6] = "112.5,-31.952162238,123.75,-21.9430455334"
+	aus[7] = "123.75,-31.952162238,135.0,-21.9430455334"
+	aus[8] = "135.0,-31.952162238,146.25,-21.9430455334"
+	aus[9] = "146.25,-31.952162238,157.5,-21.9430455334"
+	aus[10] = "112.5,-21.9430455334,123.75,-11.1784018737"
+	aus[11] = "123.75,-21.9430455334,135.0,-11.1784018737"
+	aus[12] = "135.0,-21.9430455334,146.25,-11.1784018737"
+	aus[13] = "146.25,-21.9430455334,157.5,-11.1784018737"
+}
+func Convert_bbox_into_4326(params utils.WMSParams) string {
+		x1 :=     FloatToString(params.BBox[0])
+		y1 :=     FloatToString(params.BBox[1])
+	    x1_y1, _ := exec.Command("/home/900/avs900/tmp/conv_3857_to_4326.py",x1,y1).Output()
+	    outString := string(x1_y1)
+	    outString = strings.TrimSuffix(outString, "\n")
+        s := strings.Split(outString, " ")
+        minX := s[0]
+        minY := s[1]
+		x2 :=     FloatToString(params.BBox[2])
+		y2 :=     FloatToString(params.BBox[3])
+	    x2_y2, _ := exec.Command("/home/900/avs900/Python/conv_3857_to_4326.py",x2,y2).Output()
+	    outString = string(x2_y2)
+	    outString = strings.TrimSuffix(outString, "\n")
+        s = strings.Split(outString, " ")
+        maxX := s[0]
+        maxY := s[1]
+		box := fmt.Sprintf("%v,%v,%v,%v", minX, minY, maxX, maxY)
+		return box
+}
+// -----------------------------------------------
 
 // init initialises the Error logger, checks
 // required files are in place  and sets Config struct.
@@ -159,7 +207,8 @@ func init() {
 	reWMSMap = utils.CompileWMSRegexMap()
 	reWCSMap = utils.CompileWCSRegexMap()
 	reWPSMap = utils.CompileWPSRegexMap()
-
+// AVS: BBOx for the large tiles to cover the continent at 300km res
+	AusTiles()
 }
 func list (reqURL string) { // AVS
     s := strings.Split(reqURL, "&")
@@ -173,7 +222,8 @@ func list (reqURL string) { // AVS
 
 }
 func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, reqURL string, w http.ResponseWriter, r *http.Request) {
-Info.Printf("reqURL: %v\n", reqURL)
+//fmt.Printf("reqURL: %+v\n", reqURL)
+//Info.Printf("params.Origin: %+v\n", *params.Version)
 	if params.Request == nil {
 		http.Error(w, "Malformed WMS, a Request field needs to be specified", 400)
 		return
@@ -338,8 +388,27 @@ Info.Printf("reqURL: %v\n", reqURL)
 		if yRes > reqRes {
 			reqRes = yRes
 		}
-		// AVS: With v 1.1.1 and others that send EPSG:4326 the value is less than 1
-		if (*params.Version == "1.1.1") {
+//gdaltransform -s_srs EPSG:3857 -t_srs EPSG:4326
+//		box := fmt.Sprintf("%.8f, %.8f, %.8f, %.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//fmt.Printf("GetMap: %+v\n", box)
+
+// AVS: ----------------------------------------------------------------------		
+// At this point check whether the display is at continent level (300km) 
+// If yes, we can show the stored PNG files as tiles.
+// Find out if any of the BBOX is defined in "func AusTiles()". 
+// If yes, they must be fetched as PNG files from disk and written out.
+// If not in the list, then fetch it as normal GSKY tile
+		bbox4326 := Convert_bbox_into_4326(params)
+		for i, a := range aus {
+			if strings.TrimRight(a, "\n") == bbox4326 {
+			fmt.Printf("input: %v: %+v\n", i, a)
+		}
+// --------------------------------------------------------------------------		
+}
+// AVS: With v 1.1.1 and EPSG:4326 the value of reqRes is less than 1. So, multiply it with 100,000
+		query := utils.NormaliseKeys(r.URL.Query())
+		srs := query["srs"][0]
+		if (*params.Version == "1.1.1" && srs == "EPSG:4326") {
 			reqRes = reqRes * 100000
 		}
 		if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
@@ -352,7 +421,6 @@ Info.Printf("reqURL: %v\n", reqURL)
 			}()
 
 			go indexer.Run(*verbose)
-
 			hasData := false
 			for geo := range indexer.Out {
 				select {
@@ -392,6 +460,8 @@ Info.Printf("reqURL: %v\n", reqURL)
 
 			return
 		}
+//fmt.Printf("TimeOut: %+v\n", conf.Layers[idx].WmsTimeout)
+//conf.Layers[idx].WmsTimeout = 90
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WmsTimeout)*time.Second)
 		defer timeoutCancel()
 
@@ -421,13 +491,30 @@ Info.Printf("reqURL: %v\n", reqURL)
 				return
 			}
 			out, err := utils.EncodePNG(norm, styleLayer.Palette)
-//fmt.Printf("out: %+v\n", out)
+//fmt.Printf("out: %+v\n", *params.Time)
 			if err != nil {
 				Info.Printf("Error in the utils.EncodePNG: %v\n", err) 
 				http.Error(w, err.Error(), 500)
 				return
 			}
-			w.Write(out)
+if(!*create_tile) {
+//		box := fmt.Sprintf("%.1f_%.1f_%.1f_%.1f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//fmt.Printf("GetMap: %+v\n", box)
+		w.Write(out) // AVS: Comment this out on VM19 (130.56.242.19) to create tiles are saved PNGs on disk
+}
+if(*create_tile) {  // AVS: An if/else block does not work here. Strange!
+// AVS: Write it in a local file.
+		ts := fmt.Sprintf("%v",*params.Time) 
+		date := strings.Split(ts, " ")
+		s := fmt.Sprintf("%.1f_%.1f_%.1f_%.1f_%s_", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3],date[0])
+		tile_dir := "/local/avs900/" + date[0]
+		os.Mkdir(tile_dir, 0755)
+		tile_file := tile_dir + "/tile_" + s + ".png" ;
+		f, _ := os.Create(tile_file)
+		defer f.Close()
+		f.Write(out)
+//fmt.Printf("Tile: %+v\n", tile_file)
+}
 		case err := <-errChan:
 			Info.Printf("Error in the pipeline: %v\n", err)
 			http.Error(w, err.Error(), 500)
@@ -481,7 +568,7 @@ Info.Printf("reqURL: %v\n", reqURL)
 
 		b, err := ioutil.ReadFile(styleLayer.LegendPath)
 		if err != nil {
-			Error.Printf("Error reading legend image: %v, %v\n", styleLayer.LegendPath, err)
+//			Error.Printf("Error reading legend image: %v, %v\n", styleLayer.LegendPath, err)
 			http.Error(w, "Legend graphics not found", 500)
 			return
 		}
@@ -1331,6 +1418,13 @@ func generalHandler(conf *utils.Config, w http.ResponseWriter, r *http.Request) 
 	switch query["service"][0] {
 	case "WMS":
 		params, err := utils.WMSParamsChecker(query, reWMSMap)
+		// AVS: Added to create the PNG file as a tile when called in create_tiles.sh
+		if val, ok := query["output"]; ok {
+			if (val[0] == "PNG_FILE") {
+				*create_tile = true
+			}
+}
+//fmt.Printf("create_tile: %+v\n", *create_tile)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Wrong WMS parameters on URL: %s", err), 400)
 			return
