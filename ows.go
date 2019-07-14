@@ -156,10 +156,10 @@ func AusTiles() {
 Exclude if...
 
 (112.0,-44.0,154.0,-10.0)
-maxX < 112
-minX > 154
-maxY < -44
-minY > -10
+maxX < 112.5
+minX > 153.5
+maxY < -43.5
+minY > -10.5
 */
 }
 
@@ -187,7 +187,7 @@ func Convert_bbox_into_4326(params utils.WMSParams) string {
         diffX := int(maX - miX)
         diffY := int(maY - miY)
 		box := fmt.Sprintf("")
-        if ((maX > 112.0 && miX < 154.0 && maY > -44.0 && miY < -10.0) && (diffX < 12 && diffY < 12) && (miX != 90.0 && maY != 0.0)) {
+        if ((maX > 112.5 && miX < 153.5 && maY > -43.5 && miY < -10.5) && (diffX < 12 && diffY < 12) && (miX != 90.0 && maY != 0.0)) {
         	box = fmt.Sprintf("(%v,%v,%v,%v)\n", minX, minY, maxX, maxY)
 		}
 		return box
@@ -496,7 +496,6 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				query_date := date[0]				
 				sel_date := "2013-03-17"
 				if (sel_date != query_date) {
-//P(query_date)
 					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
 					ReadPNG(tile_file, w)
 					return
@@ -504,7 +503,6 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				tile_dir := "/local/avs900/Australia/" + layer + "/" + sel_date
 				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 				tile_file := tile_dir + "/" + s + ".png" ;
-//P(tile_file)
 				ReadPNG(tile_file, w)
 				return
 			}
@@ -512,7 +510,6 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 // AVS: Send a blank tile if the box is empty		
 		bbox4326 := Convert_bbox_into_4326(params)
 		if (bbox4326 == "") {
-//P("Outside Aus")			
 			tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
 			ReadPNG(tile_file, w)
 			return
@@ -521,14 +518,23 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 //fmt.Printf("%+v\n", bbox3857)
 		for _, a := range blankbox {
 			if strings.TrimRight(a, "\n") == bbox3857 {
-//P("Blank Box")			
 				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
 				ReadPNG(tile_file, w)
 				return
 			}
 		}
-//conf.Layers[idx].ZoomLimit = 0.00		
+//conf.Layers[idx].ZoomLimit = 0.00	
 		if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
+			bbox4326 := Convert_bbox_into_4326(params)
+			if (bbox4326 == "") {
+				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+				ReadPNG(tile_file, w)
+				return
+			}
+			tile_file := utils.DataDir+"/zoom.png"
+			ReadPNG(tile_file, w)
+			return
+			
 			indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
 			go func() {
 				geoReq.Mask = nil
@@ -575,8 +581,9 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				}
 			}
 		}
+//fmt.Printf("ZoomLimit: %v; reqRes: %v; %v\n", conf.Layers[idx].ZoomLimit, reqRes, utils.DataDir )
 //fmt.Printf("TimeOut: %+v\n", conf.Layers[idx].WmsTimeout)
-conf.Layers[idx].WmsTimeout = 900
+//conf.Layers[idx].WmsTimeout = 900
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WmsTimeout)*time.Second)
 		defer timeoutCancel()
 
@@ -626,21 +633,9 @@ if(*create_tile) {  // AVS: An if/else block does not work here. Strange!
 		tile_dir := "/local/avs900/Australia/" + layer + "/" + date[0]
 		os.Mkdir(tile_dir, 0755)
 		tile_file := tile_dir + "/" + s + ".png" ;
-//P(tile_file)
 		f, _ := os.Create(tile_file)
 		defer f.Close()
 		f.Write(out)
-/*
-		ts := fmt.Sprintf("%v",*params.Time) 
-		date := strings.Split(ts, " ")
-		s := fmt.Sprintf("%.1f_%.1f_%.1f_%.1f_%s_", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3],date[0])
-		tile_dir := "/local/avs900/" + date[0]
-		os.Mkdir(tile_dir, 0755)
-		tile_file := tile_dir + "/tile_" + s + ".png" ;
-		f, _ := os.Create(tile_file)
-		defer f.Close()
-		f.Write(out)
-*/		
 //fmt.Printf("Tile: %+v\n", tile_file)
 }
 		case err := <-errChan:
