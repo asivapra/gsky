@@ -111,6 +111,7 @@ func FloatToString(input_num float64) string {
 }
 var	bboxes3857 [16]string
 var	bboxes4326 [16]string
+var	blankbox [4]string
 var	ausTiles [16]string
 func AusTiles() {
 	bboxes3857[0] = ""
@@ -147,7 +148,21 @@ func AusTiles() {
 	bboxes4326[14] = "135.0,-21.9430455334,146.25,-11.1784018737"
 	bboxes4326[15] = "146.25,-21.9430455334,157.5,-11.1784018737"
 
+	blankbox[0] = "13775786.98566760_-6261721.35712164_15028131.25709194_-5009377.08569731"
+	blankbox[1] = "13775786.98566760_-6261721.35712164_15028131.25709194_-5009377.08569731"
+	blankbox[2] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
+	blankbox[3] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
+/*
+Exclude if...
+
+(112.0,-44.0,154.0,-10.0)
+maxX < 112
+minX > 154
+maxY < -44
+minY > -10
+*/
 }
+
 func Convert_bbox_into_4326(params utils.WMSParams) string {
 		x1 :=     FloatToString(params.BBox[0])
 		y1 :=     FloatToString(params.BBox[1])
@@ -156,7 +171,9 @@ func Convert_bbox_into_4326(params utils.WMSParams) string {
 	    outString = strings.TrimSuffix(outString, "\n")
         s := strings.Split(outString, " ")
         minX := s[0]
+        miX, _ := strconv.ParseFloat(minX, 64)
         minY := s[1]
+        miY, _ := strconv.ParseFloat(minY, 64)
 		x2 :=     FloatToString(params.BBox[2])
 		y2 :=     FloatToString(params.BBox[3])
 	    x2_y2, _ := exec.Command("/home/900/avs900/Python/conv_3857_to_4326.py",x2,y2).Output()
@@ -164,8 +181,15 @@ func Convert_bbox_into_4326(params utils.WMSParams) string {
 	    outString = strings.TrimSuffix(outString, "\n")
         s = strings.Split(outString, " ")
         maxX := s[0]
+        maX, _ := strconv.ParseFloat(maxX, 64)
         maxY := s[1]
-		box := fmt.Sprintf("%v,%v,%v,%v", minX, minY, maxX, maxY)
+        maY, _ := strconv.ParseFloat(maxY, 64)
+        diffX := int(maX - miX)
+        diffY := int(maY - miY)
+		box := fmt.Sprintf("")
+        if ((maX > 112.0 && miX < 154.0 && maY > -44.0 && miY < -10.0) && (diffX < 12 && diffY < 12) && (miX != 90.0 && maY != 0.0)) {
+        	box = fmt.Sprintf("(%v,%v,%v,%v)\n", minX, minY, maxX, maxY)
+		}
 		return box
 }
 func ReadPNG(tile_file string, w http.ResponseWriter) {
@@ -174,10 +198,22 @@ func ReadPNG(tile_file string, w http.ResponseWriter) {
         log.Fatal(err)
     }
     defer file.Close()
-
+//P(tile_file)
 
   out, err := ioutil.ReadAll(file)
   w.Write(out)
+}
+func WriteOut(outfile string, data string) {
+	f, err := os.OpenFile(outfile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	
+	defer f.Close()
+	
+	if _, err = f.WriteString(data); err != nil {
+		panic(err)
+	}
 }
 // -----------------------------------------------
 
@@ -429,8 +465,11 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 // Find out if any of the BBOX is defined in "func AusTiles()". 
 // If yes, they must be fetched as PNG files from disk and written out.
 // If not in the list, then fetch it as normal GSKY tile
-//		bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//		bbox3857 := fmt.Sprintf("(%.8f,%.8f,%.8f,%.8f)\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 //		bbox4326 := Convert_bbox_into_4326(params)
+//fmt.Printf("%+v", bbox4326)
+//outfile := "/local/avs900/tmp/bbox4326.txt"
+//WriteOut(outfile,bbox4326);
 //		for _, a := range bboxes3857 {
 //			if strings.TrimRight(a, "\n") == bbox3857 {
 //http://130.56.242.15/ows/ge?time=2013-03-01T00%3A00%3A00.000Z&srs=EPSG%3A3857&transparent=true&format=image%2Fpng&exceptions=application%2Fvnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=LS8%3ANBAR%3ATRUE&bbox=-15028131.257091932%2C-10018754.17139462%2C-10018754.171394622%2C-5009377.085697312&width=256&height=256
@@ -454,20 +493,41 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				layer := "landsat8_nbar_16day"
 				ts := fmt.Sprintf("%v",*params.Time) 
 				date := strings.Split(ts, " ")
-date[0] = "2013-03-17"				
-				tile_dir := "/local/avs900/Australia/" + layer + "/" + date[0]
+				query_date := date[0]				
+				sel_date := "2013-03-17"
+				if (sel_date != query_date) {
+//P(query_date)
+					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+					ReadPNG(tile_file, w)
+					return
+				}
+				tile_dir := "/local/avs900/Australia/" + layer + "/" + sel_date
 				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 				tile_file := tile_dir + "/" + s + ".png" ;
-P(tile_file)
+//P(tile_file)
 				ReadPNG(tile_file, w)
 				return
 			}
 		}
-		tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-		ReadPNG(tile_file, w)
-		return
-P("OK")
-conf.Layers[idx].ZoomLimit = 0.00		
+// AVS: Send a blank tile if the box is empty		
+		bbox4326 := Convert_bbox_into_4326(params)
+		if (bbox4326 == "") {
+//P("Outside Aus")			
+			tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+			ReadPNG(tile_file, w)
+			return
+		}
+// AVS: Send a blank tile if the box is outside Australia		
+//fmt.Printf("%+v\n", bbox3857)
+		for _, a := range blankbox {
+			if strings.TrimRight(a, "\n") == bbox3857 {
+//P("Blank Box")			
+				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+				ReadPNG(tile_file, w)
+				return
+			}
+		}
+//conf.Layers[idx].ZoomLimit = 0.00		
 		if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
 			indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
 			go func() {
