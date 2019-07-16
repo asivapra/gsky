@@ -1552,7 +1552,7 @@ func generalHandler(conf *utils.Config, w http.ResponseWriter, r *http.Request) 
 		// AVS: Added to create the PNG file as a tile when called in create_tiles.sh
 		// It is best to hard change the setting in "flag.Bool("create_tile", false.."
 		// If the tile creating cmd with 'output=PNG_FILE' is issued, it will alter the setting for the tile display part as well. 
-		// It is because the server is running and any change in global params will stay for the next call to the server.
+		// It is because the server is running and any change in global params will stay for the next call to the server. 
 		if val, ok := query["output"]; ok {
 			if (val[0] == "PNG_FILE") {
 				*create_tile = true
