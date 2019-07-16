@@ -195,7 +195,9 @@ func Convert_bbox_into_4326(params utils.WMSParams) string {
 func ReadPNG(tile_file string, w http.ResponseWriter) {
     file, err := os.Open(tile_file)
     if err != nil {
-        log.Fatal(err)
+//        log.Fatal(err)
+		tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+		ReadPNG(tile_file, w)
     }
     defer file.Close()
 //P(tile_file)
@@ -487,23 +489,26 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 		if (*params.Version == "1.1.1" && srs == "EPSG:4326") {
 			reqRes = reqRes * 100000
 		}
+layer := query["layers"][0]
+if(!*create_tile) {
 		bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 		for _, a := range bboxes3857 {
 			if strings.TrimRight(a, "\n") == bbox3857 {
-				layer := "landsat8_nbar_16day"
+//				layer := "landsat8_nbar_16day"
 				ts := fmt.Sprintf("%v",*params.Time) 
 				date := strings.Split(ts, " ")
-				query_date := date[0]				
-				sel_date := "2013-03-17"
-				if (sel_date != query_date) {
-					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-					ReadPNG(tile_file, w)
-					return
-				}
-				tile_dir := "/local/avs900/Australia/" + layer + "/" + sel_date
+//				query_date := date[0]				
+//				sel_date := "2013-03-17"
+//				if (sel_date != query_date) {
+//					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+//					ReadPNG(tile_file, w)
+//					return
+//				}
+				tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
 				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 				tile_file := tile_dir + "/" + s + ".png" ;
 				ReadPNG(tile_file, w)
+//P(tile_file)
 				return
 			}
 		}
@@ -534,7 +539,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			tile_file := utils.DataDir+"/zoom.png"
 			ReadPNG(tile_file, w)
 			return
-			
+}			
 			indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
 			go func() {
 				geoReq.Mask = nil
@@ -583,7 +588,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 		}
 //fmt.Printf("ZoomLimit: %v; reqRes: %v; %v\n", conf.Layers[idx].ZoomLimit, reqRes, utils.DataDir )
 //fmt.Printf("TimeOut: %+v\n", conf.Layers[idx].WmsTimeout)
-//conf.Layers[idx].WmsTimeout = 900
+conf.Layers[idx].WmsTimeout = 900
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WmsTimeout)*time.Second)
 		defer timeoutCancel()
 
@@ -625,17 +630,21 @@ if(!*create_tile) {
 		w.Write(out) // AVS: Comment this out on VM19 (130.56.242.19) to create tiles are saved PNGs on disk
 }
 if(*create_tile) {  // AVS: An if/else block does not work here. Strange!
+//layer := query["layers"][0]
 // AVS: Write it in a local file.
-		layer := "landsat8_nbar_16day"
+//		layer := "landsat8_nbar_16day"
+//		layer := fmt.Sprintf("%v",*params.Layers)
 		ts := fmt.Sprintf("%v",*params.Time) 
 		date := strings.Split(ts, " ")
 		s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-		tile_dir := "/local/avs900/Australia/" + layer + "/" + date[0]
+		tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
 		os.Mkdir(tile_dir, 0755)
 		tile_file := tile_dir + "/" + s + ".png" ;
+fmt.Printf("%+v\n", tile_file)
 		f, _ := os.Create(tile_file)
 		defer f.Close()
 		f.Write(out)
+		return
 //fmt.Printf("Tile: %+v\n", tile_file)
 }
 		case err := <-errChan:
@@ -1541,6 +1550,9 @@ func generalHandler(conf *utils.Config, w http.ResponseWriter, r *http.Request) 
 	case "WMS":
 		params, err := utils.WMSParamsChecker(query, reWMSMap)
 		// AVS: Added to create the PNG file as a tile when called in create_tiles.sh
+		// It is best to hard change the setting in "flag.Bool("create_tile", false.."
+		// If the tile creating cmd with 'output=PNG_FILE' is issued, it will alter the setting for the tile display part as well. 
+		// It is because the server is running and any change in global params will stay for the next call to the server.
 		if val, ok := query["output"]; ok {
 			if (val[0] == "PNG_FILE") {
 				*create_tile = true
