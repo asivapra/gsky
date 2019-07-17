@@ -489,46 +489,40 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 		if (*params.Version == "1.1.1" && srs == "EPSG:4326") {
 			reqRes = reqRes * 100000
 		}
-layer := query["layers"][0]
-if(!*create_tile) {
-		bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-		for _, a := range bboxes3857 {
-			if strings.TrimRight(a, "\n") == bbox3857 {
-//				layer := "landsat8_nbar_16day"
-				ts := fmt.Sprintf("%v",*params.Time) 
-				date := strings.Split(ts, " ")
-//				query_date := date[0]				
-//				sel_date := "2013-03-17"
-//				if (sel_date != query_date) {
-//					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-//					ReadPNG(tile_file, w)
-//					return
-//				}
-				tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
-				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-				tile_file := tile_dir + "/" + s + ".png" ;
-				ReadPNG(tile_file, w)
+		layer := query["layers"][0]
+		if(!*create_tile) {
+			bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+			for _, a := range bboxes3857 {
+				if strings.TrimRight(a, "\n") == bbox3857 {
+					ts := fmt.Sprintf("%v",*params.Time) 
+					date := strings.Split(ts, " ")
+					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
+					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+					tile_file := tile_dir + "/" + s + ".png" ;
 //P(tile_file)
-				return
+					ReadPNG(tile_file, w)
+					return
+				}
 			}
-		}
 // AVS: Send a blank tile if the box is empty		
-		bbox4326 := Convert_bbox_into_4326(params)
-		if (bbox4326 == "") {
-			tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-			ReadPNG(tile_file, w)
-			return
-		}
-// AVS: Send a blank tile if the box is outside Australia		
-//fmt.Printf("%+v\n", bbox3857)
-		for _, a := range blankbox {
-			if strings.TrimRight(a, "\n") == bbox3857 {
+			bbox4326 := Convert_bbox_into_4326(params)
+			if (bbox4326 == "") {
 				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
 				ReadPNG(tile_file, w)
 				return
 			}
+// AVS: Send a blank tile if the box is outside Australia		
+//fmt.Printf("%+v\n", bbox3857)
+			for _, a := range blankbox {
+				if strings.TrimRight(a, "\n") == bbox3857 {
+					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+					ReadPNG(tile_file, w)
+					return
+				}
+			}
 		}
 //conf.Layers[idx].ZoomLimit = 0.00	
+//fmt.Printf("ctx: %v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)					
 		if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
 			bbox4326 := Convert_bbox_into_4326(params)
 			if (bbox4326 == "") {
@@ -539,7 +533,6 @@ if(!*create_tile) {
 			tile_file := utils.DataDir+"/zoom.png"
 			ReadPNG(tile_file, w)
 			return
-}			
 			indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
 			go func() {
 				geoReq.Mask = nil
@@ -567,7 +560,6 @@ if(!*create_tile) {
 					break
 				}
 			}
-
 			if hasData {
 				out, err := utils.GetEmptyTile(utils.DataDir+"/zoom.png", *params.Height, *params.Width)
 				if err != nil {
@@ -586,9 +578,7 @@ if(!*create_tile) {
 				}
 			}
 		}
-//fmt.Printf("ZoomLimit: %v; reqRes: %v; %v\n", conf.Layers[idx].ZoomLimit, reqRes, utils.DataDir )
-//fmt.Printf("TimeOut: %+v\n", conf.Layers[idx].WmsTimeout)
-conf.Layers[idx].WmsTimeout = 900
+		conf.Layers[idx].WmsTimeout = 900 // AVS: Arbitrary limit to avoid timeout
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WmsTimeout)*time.Second)
 		defer timeoutCancel()
 
@@ -616,37 +606,29 @@ conf.Layers[idx].WmsTimeout = 900
 				}
 				return
 			}
-
 			out, err := utils.EncodePNG(norm, styleLayer.Palette)
-//fmt.Printf("out: %+v\n", *params.Time)
 			if err != nil {
 				Info.Printf("Error in the utils.EncodePNG: %v\n", err) 
 				http.Error(w, err.Error(), 500)
 				return
 			}
-if(!*create_tile) {
-//		box := fmt.Sprintf("%.1f_%.1f_%.1f_%.1f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-//fmt.Printf("GetMap: %+v\n", box)
-		w.Write(out) // AVS: Comment this out on VM19 (130.56.242.19) to create tiles are saved PNGs on disk
-}
-if(*create_tile) {  // AVS: An if/else block does not work here. Strange!
-//layer := query["layers"][0]
+			if(!*create_tile) {
+					w.Write(out) // AVS: Comment this out on VM19 (130.56.242.19) to create tiles are saved PNGs on disk
+			}
+			if(*create_tile) {  // AVS: An if/else block does not work here. Strange!
 // AVS: Write it in a local file.
-//		layer := "landsat8_nbar_16day"
-//		layer := fmt.Sprintf("%v",*params.Layers)
-		ts := fmt.Sprintf("%v",*params.Time) 
-		date := strings.Split(ts, " ")
-		s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-		tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
-		os.Mkdir(tile_dir, 0755)
-		tile_file := tile_dir + "/" + s + ".png" ;
-fmt.Printf("%+v\n", tile_file)
-		f, _ := os.Create(tile_file)
-		defer f.Close()
-		f.Write(out)
-		return
-//fmt.Printf("Tile: %+v\n", tile_file)
-}
+					ts := fmt.Sprintf("%v",*params.Time) 
+					date := strings.Split(ts, " ")
+					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
+					os.Mkdir(tile_dir, 0755)
+					tile_file := tile_dir + "/" + s + ".png" ;
+//fmt.Printf("%+v\n", tile_file)
+					f, _ := os.Create(tile_file)
+					defer f.Close()
+					f.Write(out)
+					return
+			}
 		case err := <-errChan:
 			Info.Printf("Error in the pipeline: %v\n", err)
 			http.Error(w, err.Error(), 500)
@@ -658,21 +640,6 @@ fmt.Printf("%+v\n", tile_file)
 			http.Error(w, "WMS request timed out", 500)
 		}
 // AVS: Call WCS here so that the displayed map in the canvas extent is saved as a NetCDF file
-//query := utils.NormaliseKeys(r.URL.Query())
-//query["service"][0] = "WCS"
-//query["request"][0] = "GetCoverage"
-//query["srs"][0] = "EPSG:3857"
-//Info.Printf("query: %+v\n", query)
-//ctx = r.Context()
-//Info.Printf("params=%+v", params)
-//Time := *params.Time
-//*params.Time = Time
-//Info.Printf("params.Request: %+v\n", *params.Request)
-//Info.Printf("w: %+v\n", w)
-//Info.Printf("URL: %+v\n", r.URL.String())
-//params, err := utils.WCSParamsChecker(query, reWCSMap) // AVS: Time added to prevent a NIL value 
-//serveWCS(ctx, params, conf, r.URL.String(), w, query)
-
 	case "GetLegendGraphic":
 		idx, err := utils.GetLayerIndex(params, conf)
 		if err != nil {
