@@ -1,0 +1,209 @@
+{
+  "service_config":{
+    "ows_hostname":"130.56.242.19",
+    "mas_address": "10.0.1.210:8888",
+      "worker_nodes":["127.0.0.1:6000"]
+},
+  "layers":
+  [
+    {
+  "name":"global:c5:frac_cover",
+  "title":"GEOGLAM Fractional Cover C5",
+  "abstract":"Fractional Cover - MODIS, CSIRO Land and Water algorithm, Australia coverage. Vegetation fractional cover represents the exposed proportion of Photosynthetic Vegetation (PV), Non-Photosynthetic Vegetation (NPV) and Bare Soil (BS) within each pixel. In forested canopies the photosynthetic or non-photosynthetic portions of trees may obscure those of the grass layer and/or bare soil. The MODIS Fractional Cover product is derived from the MODIS Nadir BRDF-Adjusted Reflectance product MCD43A4). A suite of derivative are also produced, namely total vegetation cover (PV+NPV), monthly fractional cover and total vegetation cover, monthly anomaly of total cover against the time series, and three-monthly total cover difference. MODIS fractional cover has been validated for Australia. A global product is also produced with the same algorithm using the MCD43C1 (0.05 degrees spatial resolution).",
+  "data_source":"/g/data2/u39/public/prep/modis-fc/FC_LR.v302.MCD43A4",
+  "start_isodate":"2000-02-18T00:00:00.000Z",
+  "end_isodate":"2018-03-14T00:00:00.000Z",
+  "step_days":8,
+  "accum":false,
+  "time_generator":"mcd43",
+  "rgb_products":[
+    "bare_soil",
+    "phot_veg",
+    "nphot_veg"
+  ],
+  "offset_value":0,
+  "clip_value":100,
+  "scale_value":2.54,
+  "legend_path":"/local/gsky/share/gsky/static/legend/MODIS_FC_Triangle.png",
+  "zoom_limit":10000
+},
+    {
+  "name":"global:c5:total_cover",
+  "title":"GEOGLAM Total Cover C5",
+  "abstract":"Total Cover- MODIS, CSIRO Land and Water algorithm, Australia coverage. Vegetation fractional cover represents the exposed proportion of Photosynthetic Vegetation (PV), Non-Photosynthetic Vegetation (NPV) and Bare Soil (BS) within each pixel. In forested canopies the photosynthetic or non-photosynthetic portions of trees may obscure those of the grass layer and/or bare soil. The MODIS Fractional Cover product is derived from the MODIS Nadir BRDF-Adjusted Reflectance product MCD43A4). A suite of derivative are also produced, namely total vegetation cover (PV+NPV), monthly fractional cover and total vegetation cover, monthly anomaly of total cover against the time series, and three-monthly total cover difference. MODIS fractional cover has been validated for Australia. A global product is also produced with the same algorithm using the MCD43C1 (0.05 degrees spatial resolution).",
+  "data_source":"/g/data2/u39/public/prep/modis-fc/FC.v302.MCD43A4",
+  "start_isodate":"2000-02-18T00:00:00.000Z",
+  "end_isodate":"2017-03-14T00:00:00.000Z",
+  "step_days":8,
+  "accum":false,
+  "time_generator":"mcd43",
+  "rgb_products":[
+    "bare_soil"
+  ],
+  "offset_value":0,
+  "clip_value":100,
+  "scale_value":2.54,
+  "palette":{
+    "interpolate":true,
+    "colours":[
+      {"R":0,"G":100,"B":0,"A":255},
+      {"R":255,"G":255,"B":0,"A":255},
+      {"R":160,"G":82,"B":45,"A":255}
+    ]
+  },
+  "legend_path":"/local/gsky/share/gsky/static/legend/TotCover_Legend.png"
+},
+    {
+  "name":"modis:c5:NDVI",
+  "title":"GEOGLAM NDVI C5",
+  "abstract":"NDVI being computed and rendered on the fly from MODIS MCD43A4 product.",
+  "data_source":"/g/data2/u39/public/data/modis/lpdaac-tiles-c5/MCD43A4.005",
+  "start_isodate":"2000-02-18T00:00:00.000Z",
+  "end_isodate":"2017-03-14T00:00:00.000Z",
+  "step_days":8,
+  "accum":false,
+  "time_generator":"mcd43",
+  "rgb_products":[
+    "Nadir_Reflectance_Band1",
+    "Nadir_Reflectance_Band2"
+  ],
+  "offset_value":0,
+  "clip_value":0.8,
+  "scale_value":254,
+  "palette":{
+    "interpolate":true,
+    "colours":[
+      {
+        "R":160,
+        "G":82,
+        "B":45,
+        "A":255
+      },
+      {
+        "R":255,
+        "G":255,
+        "B":0,
+        "A":255
+      },
+      {
+        "R":0,
+        "G":100,
+        "B":0,
+        "A":255
+      }
+    ]
+  },
+  "legend_path":"/local/gsky/share/gsky/static/legend/NDVI_Legend.png",
+  "zoom_limit":10000
+},
+    {
+  "name":"modis:c6:NDVI",
+  "title":"GEOGLAM NDVI C6",
+  "abstract":"NDVI being computed and rendered on the fly from MODIS MCD43A4 product.",
+  "data_source":"/g/data2/u39/public/data/modis/lpdaac-tiles-c6/MCD43A4.006",
+  "start_isodate":"2000-02-26T00:00:00.000Z",
+  "end_isodate":"2018-10-12T00:00:00.000Z",
+  "step_days":4,
+  "accum":false,
+  "time_generator":"mcd43",
+  "rgb_products":[
+    "Nadir_Reflectance_Band1",
+    "Nadir_Reflectance_Band2"
+  ],
+  "offset_value":0,
+  "clip_value":0.8,
+  "scale_value":254,
+  "palette":{
+    "interpolate":true,
+    "colours":[
+      {
+        "R":160,
+        "G":82,
+        "B":45,
+        "A":255
+      },
+      {
+        "R":255,
+        "G":255,
+        "B":0,
+        "A":255
+      },
+      {
+        "R":0,
+        "G":100,
+        "B":0,
+        "A":255
+      }
+    ]
+  },
+  "legend_path":"/local/gsky/share/gsky/static/legend/NDVI_Legend.png",
+  "zoom_limit":10000
+},
+    {
+  "name":"chirps2.0",
+  "title":"Monthly Precipitation CHIRPS 2.0",
+  "abstract":"The CHIRPS dataset was obtained from http://chg.geog.ucsb.edu/data/chirps/\nWhat is CHIRPS? Latest Preliminary CHIRPS v2.0 Africa Pentad Climate Hazards Group InfraRed Precipitation with Station data (CHIRPS) is a 30+ year quasi-global rainfall dataset. Spanning 50°S-50°N (and all longitudes), starting in 1981 to near-present, CHIRPS incorporates 0.05° resolution satellite imagery with in-situ station data to create gridded rainfall time series for trend analysis and seasonal drought monitoring. As of February 12th, 2015, version 2.0 of CHIRPS is complete and available to the public. For detailed information on CHIRPS, please refer to our paper in Scientific Data.\nHistory and Intent Since 1999, U.S. Geological Survey (USGS) and CHG scientists, supported by funding from the U.S. Agency for International Development (USAID), the National Aeronautics and Space Administration (NASA), and the National Oceanic and Atmospheric Administration (NOAA), have been developing techniques for producing rainfall maps, especially where surface data is sparse. Estimating rainfall variations in space and time is an important aspect of drought early warning and environmental monitoring. An evolving dryer-than-normal season must be placed in historical context so that the severity of rainfall deficits may be quickly evaluated. However, estimates derived from satellite data provide areal averages that suffer from biases due to complex terrain which often underestimate the intensity of extreme precipitations events. Conversely, precipitation grids produced from station data suffer in more rural regions where there are less rain gauge stations. CHIRPS was created in collaboration with scientists at the U.S. Geological Survey (USGS) Earth Resources Observation and Science (EROS) Center in order to deliver reliable, up to date, and more complete datasets for a number of early warning objectives (such as trend analysis and seasonal drought monitoring). Early research focused on combining models of terrain-induced precipitation enhancement with interpolated station data. More recently, new resources of satellite observations such as gridded satellite-based precipitation estimates from NASA and NOAA have been leveraged to build high resolution (0.05°) gridded precipitation climatologies. When applied to satellite-based precipitation fields, these improved climatologies can remove systematic bias, a key technique in the production of the 1981 to near-present CHIRPS dataset. The creation of CHIRPS has supported drought monitoring efforts by the USAID Famine Early Warning Systems Network (FEWS NET).\nThe current best publication of record for CHIRPS is: Funk, Chris, Pete Peterson, Martin Landsfeld, Diego Pedreros, James Verdin, Shraddhanand Shukla, Gregory Husak, James Rowland, Laura Harrison, Andrew Hoell and Joel Michaelsen. \"The climate hazards infrared precipitation with stations—a new environmental record for monitoring extremes\". Scientific Data 2, 150066. doi:10.1038/sdata.2015.66 2015.",
+  "data_source":"/g/data2/tc43/rainfall/CHIRPS-2.0/global_dekad",
+  "start_isodate":"1981-01-01T00:00:00.000Z",
+  "end_isodate":"2018-09-22T00:00:00.000Z",
+  "step_days":10,
+  "time_generator":"chirps20",
+  "rgb_products":[
+
+  ],
+  "offset_value":0,
+  "clip_value":200.0,
+  "scale_value":1.2,
+  "palette":{
+    "interpolate":true,
+    "colours":[
+      {
+        "R":255,
+        "G":255,
+        "B":255,
+        "A":255
+      },
+      {
+        "R":30,
+        "G":144,
+        "B":255,
+        "A":255
+      },
+      {
+        "R":0,
+        "G":0,
+        "B":255,
+        "A":255
+      },
+      {
+        "R":138,
+        "G":43,
+        "B":226,
+        "A":255
+      }
+    ]
+  },
+  "legend_path":"/local/gsky/share/gsky/static/legend/CHIRPS_Legend.png"
+}  ],
+  "processes":[
+    {
+      "paths":[
+        "/g/data2/tc43/modis-fc/v310/tiles/monthly/cover",
+        "/g/data2/tc43/rainfall/CHIRPS-2.0/global_dekad"
+      ],
+      "identifier":"geometryDrill",
+      "title":"Geometry Drill",
+      "abstract":"",
+      "max_area": 400,
+      "complex_data":[
+        {
+          "identifier":"geometry",
+          "title":"Geometry",
+          "abstract":"",
+          "mime_type":"application/vnd.geo+json",
+          "schema":"http://geojson.org/geojson-spec.html"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2127 @@
+{
+  "service_config":{
+    "ows_hostname":"130.56.242.15",
+    "mas_address": "10.0.1.167:8888",
+      "worker_nodes":["127.0.0.1:6000"]
+},
+  "layers":
+  [
+    {
+      "step_days": 16,
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 8 OLI terrain corrected surface reflectance data. This service provides access to Landsat 8 OLI surface reflectance data. The true colour composite is composed of wavelengths of light as seen by the human eye. The image composites are made from images acquired within a 16 day period, and may include clouds.  ",
+      "start_isodate": "2013-03-19T00:00:00.000Z",
+      "end_isodate": "2014-08-29T00:00:00.000Z",
+      "clip_value": 2500,
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBAR",
+      "offset_value": 0,
+      "rgb_products": [
+        "red",
+        "green",
+        "blue"
+      ],
+      "name": "LS8:NBAR:TRUE",
+      "title": "DEA Landsat 8 surface reflectance true colour",
+      "scale_value": 0.1016,
+      "time_generator": "regular",
+      "accum": true,
+      "zoom_limit": 600
+    },
+{
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 5 TM surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBAR", 
+      "start_isodate": "1986-08-15T00:00:00.000Z", 
+      "name": "landsat5_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "end_isodate": "1986-09-16T00:00:00.000Z", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 5 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+{
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 5 TM surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBAR", 
+      "end_isodate": "1986-08-18T00:00:00.000Z", 
+      "name": "landsat5_nbar_daily", 
+      "start_isodate": "1986-08-15T00:00:00.000Z", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 5 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+{
+      "abstract": "The terrain corrected surface reflectance geometric median (geomedian) is a pixel composite mosaic of a time series of earth observations. Essentially the value of a pixel in a geomedian image is the statistical median of all observations for that pixel from a period of time. For example the 2016 Landsat 8 geomedian image over an area will be the median of Landsat 8 pixels observed for that area in 2016. Multispectral satellite imagery, such as is available from Landsat and Sentinel-2, consists of multiple measurements per pixel: one for each spectral band. In order to create a meaningful median, a median pixel must take all concurrent spectral measurements into account simultaneously as a multi-dimensional set, rather than each measurement independently as occurs with a simple median. The geomedian is a high-dimensional statistic, which calculates a multi-dimensional median from all the spectral measurements from the satellite imagery at the same time, and maintains the relationships among the measurements. This provides a median of the physical conditions measured by the earth observations used to create it, and provides a good representation of a typical pixel observation devoid of outliers, and exhibits reduced spatial noise. Details of the geomedian algortihm are available at https://doi.org/10.1109/TGRS.2017.2723896. As of version 2.0.0, the geometric median products are available as annual datasets, each created from one calendar year of earth observation data from a single satellite.", 
+      "data_source": "/g/data2/fk4/datacube/002/stats/geomedian/annual/ls7_gm", 
+      "name": "landsat7_geomedian", 
+      "start_isodate": "2000-01-01T00:00:00.000Z", 
+      "end_isodate": "2004-01-01T00:00:00.000Z", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Landsat 7 TC surface reflectance geomedian", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+{
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 7 Enhanced Thematic Mapper (ETM+) data is available from May 1999 and onwards. Please note that images from 1st of June 2003 onwards are affected by the failure of scan line corrector which results in strips of missing data. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 7 ETM+ terrain corrected surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS7_ETM_NBAR", 
+      "end_isodate": "1999-07-15T00:00:00.000Z", 
+      "name": "landsat7_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "1999-05-28T00:00:00.000Z", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 7 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "The terrain corrected surface reflectance geometric median (geomedian) is a pixel composite mosaic of a time series of earth observations. Essentially the value of a pixel in a geomedian image is the statistical median of all observations for that pixel from a period of time. For example the 2016 Landsat 8 geomedian image over an area will be the median of Landsat 8 pixels observed for that area in 2016. Multispectral satellite imagery, such as is available from Landsat and Sentinel-2, consists of multiple measurements per pixel: one for each spectral band. In order to create a meaningful median, a median pixel must take all concurrent spectral measurements into account simultaneously as a multi-dimensional set, rather than each measurement independently as occurs with a simple median. The geomedian is a high-dimensional statistic, which calculates a multi-dimensional median from all the spectral measurements from the satellite imagery at the same time, and maintains the relationships among the measurements. This provides a median of the physical conditions measured by the earth observations used to create it, and provides a good representation of a typical pixel observation devoid of outliers, and exhibits reduced spatial noise. Details of the geomedian algortihm are available at https://doi.org/10.1109/TGRS.2017.2723896. As of version 2.0.0, the geometric median products are available as annual datasets, each created from one calendar year of earth observation data from a single satellite.", 
+      "data_source": "/g/data2/fk4/datacube/002/stats/geomedian/annual/ls8_gm", 
+      "name": "landsat8_geomedian", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Landsat 8 TC surface reflectance geomedian", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "end_isodate": "2017-01-01T00:00:00.000Z", 
+      "start_isodate": "2013-01-01T00:00:00.000Z", 
+      "zoom_limit": 5000
+    }, 
+{
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 8 OLI surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBAR", 
+      "end_isodate": "2013-05-06T00:00:00.000Z", 
+      "name": "landsat8_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "2013-03-19T00:00:00.000Z", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 8 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+{
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 8 OLI surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBAR", 
+      "end_isodate": "2013-03-22T00:00:00.000Z", 
+      "name": "landsat8_nbar_daily", 
+      "start_isodate": "2013-03-19T00:00:00.000Z", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 8 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+{
+      "abstract": "The Surface Reflectance product has been corrected to account for variations caused by atmospheric properties, sun position and sensor view angle at time of image capture. These corrections have been applied to all satellite imagery in the Sentinel-2 archive. This is undertaken to allow comparison of imagery acquired at different times, by different sensors, in different seasons and in different geographic locations. These products also indicate where the imagery has been affected by cloud or cloud shadow, contains missing data or has been affected in other ways. The Surface Reflectance products are useful as a fundamental starting point for any further analysis and are the underlying data of all other Digital Earth Australia products.", 
+      "accum": true, 
+      "data_source": "/g/data1b/if87/datacube/002/S2_MSI_ARD", 
+      "end_isodate": "2015-07-15T00:00:00.000Z", 
+      "name": "sentinel2_nbart_daily", 
+      "start_isodate": "2015-07-12T00:00:00.000Z", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 3000, 
+          "feature_info_bands": [
+            "nbart_blue", 
+            "nbart_green", 
+            "nbart_nir_1", 
+            "nbart_red", 
+            "nbart_swir_2"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "nbart_swir_2", 
+            "nbart_nir_1", 
+            "nbart_green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 3000, 
+          "feature_info_bands": [
+            "nbart_blue", 
+            "nbart_green", 
+            "nbart_nir_1", 
+            "nbart_red", 
+            "nbart_swir_2"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "nbart_red", 
+            "nbart_green", 
+            "nbart_blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Sentinel 2 Analysis Ready Data (Beta)", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 500
+    }, 
+{
+      "abstract": "Water Observations from Space (WOfS) is a gridded dataset indicating areas where surface water has been observed using the Geoscience Australia (GA) Earth observation satellite data holdings. The current product (Version 2.1.5) includes observations taken between 1986 and 2017 (inclusive) from the Landsat 5, 7 and 8 satellites. WOfS covers all of mainland Australia and Tasmania but excludes off-shore Territories. WOfS shows water observed for every Landsat-5, Landsat-7 and Landsat-8 image across Australia (excluding External Territories) for the period of 1986 to 2017. The dataset is updated on as as-needs basis and is expected to increase in update frequency in the future so that as a satellite acquires data, it will automatically be analysed for the presence of water and added to the WOfS product in near real time. Data is provided as Water Observation Feature Layers (WOFLs), in a 1 to 1 relationship with the input satellite data. Hence there is one WOFL for each satellite dataset processed for the occurrence of water. The details of the WOfS algorithm and derived statistics are available at http://dx.doi.org/10.1016/j.rse.2015.11.003.", 
+      "accum": true, 
+      "data_source": "/g/data2/fk4/datacube/002/WOfS/WOfS_25_2_1", 
+      "end_isodate": "1986-08-18T00:00:00.000Z", 
+      "name": "wofs", 
+      "start_isodate": "1986-08-15T00:00:00.000Z", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "clip_value": 254, 
+          "legend_path": "../share/gsky/static/legend/dea/wofs.png", 
+          "mask": {
+            "bit_tests": [
+              "0000000000000001", 
+              "0000000000000001"
+            ], 
+            "data_source": "/g/data2/fk4/datacube/002/WOfS/WOfS_25_2_1", 
+            "id": "water", 
+            "inclusive": true
+          }, 
+          "name": "water", 
+          "offset_value": 0, 
+          "palette": {
+            "colours": [
+              {
+                "A": 255, 
+                "B": 148, 
+                "G": 150, 
+                "R": 217
+              }, 
+              {
+                "A": 255, 
+                "B": 255, 
+                "G": 255, 
+                "R": 255
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 189, 
+                "G": 129, 
+                "R": 79
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 189, 
+                "G": 129, 
+                "R": 79
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }
+            ], 
+            "interpolate": false
+          }, 
+          "rgb_products": [
+            "water"
+          ], 
+          "title": "Water"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "DEA Water Observation Feature Layer", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }
+  ],
+  "processes":[
+    {
+      "paths":[
+        "/g/data2/tc43/modis-fc/v310/tiles/monthly/cover",
+        "/g/data2/tc43/rainfall/CHIRPS-2.0/global_dekad"
+      ],
+      "identifier":"geometryDrill",
+      "title":"Geometry Drill",
+      "abstract":"",
+      "max_area": 400,
+      "complex_data":[
+        {
+          "identifier":"geometry",
+          "title":"Geometry",
+          "abstract":"",
+          "mime_type":"application/vnd.geo+json",
+          "schema":"http://geojson.org/geojson-spec.html"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2847 @@
+{
+  "service_config":{
+    "ows_hostname":"130.56.242.15",
+    "mas_address": "10.0.1.210:8888",
+      "worker_nodes":["127.0.0.1:6000"]
+},
+  "layers": [
+    {
+      "abstract": "The High and Low Tide Composites product is composed of two surface reflectance composite mosaics of Landsat TM and ETM+ (Landsat 5 and Landsat 7 respectively) and OLI (Landsat 8) surface reflectance data Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. These products have been produced using Digital Earth Australia (DEA). The two mosaics allow cloud free and noise reduced visualisation of the shallow water and inter-tidal coastal regions of Australia, as observed at high and low tide respectively. The composites are generated utilising the geomedian approach of Roberts et al. (2017) (https://doi.org/10.1109/TGRS.2017.2723896) to ensure a valid surface reflectance spectra suitable for uses such as habitat mapping. The time range used for composite generation in each polygon of the mosaic is tailored to ensure dynamic coastal features are captured whilst still allowing a clean and cloud free composite to be generated (see Sagar et al. 2018 (https://doi.org/10.3390/rs10030480)). The concepts of the Observed Tidal Range (OTR), and Highest and Lowest Observed Tide (HOT, LOT) are discussed and described fully in Sagar et al. (2017) (https://doi.org/10.1016/j.rse.2017.04.009). This service provides access to the High Tide Composite v2.0 product. More detailed information including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a615705d20f7 .", 
+      "data_source": "/g/data2/fk4/datacube/002/HLTC/HLTC_2_0", 
+      "name": "hltc_high", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 0.3, 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "HIGH_swir1", 
+            "HIGH_nir", 
+            "HIGH_green"
+          ], 
+          "scale_value": 850, 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 0.3, 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "HIGH_red", 
+            "HIGH_green", 
+            "HIGH_blue"
+          ], 
+          "scale_value": 850, 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA High Tide Composite 25m v2.0", 
+      "zoom_limit": 500
+    }, 
+    {
+      "abstract": "The High and Low Tide Composites product is composed of two surface reflectance composite mosaics of Landsat TM and ETM+ (Landsat 5 and Landsat 7 respectively) and OLI (Landsat 8) surface reflectance data Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. These products have been produced using Digital Earth Australia (DEA). The two mosaics allow cloud free and noise reduced visualisation of the shallow water and inter-tidal coastal regions of Australia, as observed at high and low tide respectively. The composites are generated utilising the geomedian approach of Roberts et al. (2017) (https://doi.org/10.1109/TGRS.2017.2723896) to ensure a valid surface reflectance spectra suitable for uses such as habitat mapping. The time range used for composite generation in each polygon of the mosaic is tailored to ensure dynamic coastal features are captured whilst still allowing a clean and cloud free composite to be generated (see Sagar et al. 2018 (https://doi.org/10.3390/rs10030480)). The concepts of the Observed Tidal Range (OTR), and Highest and Lowest Observed Tide (HOT, LOT) are discussed and described fully in Sagar et al. (2017) (https://doi.org/10.1016/j.rse.2017.04.009). This service provides access to the Low Tide Composite v2.0 product. More detailed information including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a615705d20f7 .", 
+      "data_source": "/g/data2/fk4/datacube/002/HLTC/HLTC_2_0", 
+      "name": "hltc_low", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 0.3, 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "LOW_swir1", 
+            "LOW_nir", 
+            "LOW_green"
+          ], 
+          "scale_value": 850, 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 0.3, 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "LOW_red", 
+            "LOW_green", 
+            "LOW_blue"
+          ], 
+          "scale_value": 850, 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Low Tide Composite 25m v2.0", 
+      "zoom_limit": 500
+    }, 
+    {
+      "abstract": "The Intertidal Extents Model (ITEM) product is a national dataset characterising the spatial extents of the exposed intertidal zone; the land between the observed highest and lowest tide, at intervals of the observed tidal range. ITEM provides the extent and topography of the intertidal zone of Australia's coastline (excluding offshore Territories). This information was derived using observations in the Landsat archive since 1986. ITEM v2.0 has implemented an improved tidal modelling framework over that utilised in ITEM v1.0 (Sagar et al. 2017, 2018) (https://doi.org/10.1016/j.rse.2017.04.009, https://doi.org/10.3390/rs10030480). The expanded Landsat archive within the Digital Earth Australia (DEA) has also enabled the model extent to be increased from ITEM v1.0 to cover a number of offshore reefs, including the full Great Barrier Reef and southern sections of the Torres Strait Islands. ITEM can be a valuable complementary dataset to both onshore LiDAR survey data and coarser offshore bathymetry data, enabling a more realistic representation of the land and ocean interface. More detailed information including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a602cc9eb358. This service provides access to the Intertidal Extents Model v2.0 Relative Layer product. The relative layer displays the modelled extents of the exposed intertidal zone, at percentile intervals of the observed tidal range (OTR). For example, the region defined as 0-10% denotes an area that only exposes at the lowest 10% of tides in relation to the OTR.", 
+      "data_source": "/g/data2/fk4/datacube/002/ITEM/ITEM_2_0/netcdf", 
+      "name": "item_relative", 
+      "styles": [
+        {
+          "clip_value": 9, 
+          "legend_path": "../share/gsky/static/legend/dea/ITEM_REL_Legend.png", 
+          "name": "relative", 
+          "offset_value": 0, 
+          "palette": {
+            "colours": [
+              {
+                "A": 0, 
+                "B": 0, 
+                "G": 0, 
+                "R": 0
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 25, 
+                "R": 215
+              }, 
+              {
+                "A": 255, 
+                "B": 67, 
+                "G": 110, 
+                "R": 236
+              }, 
+              {
+                "A": 255, 
+                "B": 110, 
+                "G": 185, 
+                "R": 253
+              }, 
+              {
+                "A": 255, 
+                "B": 164, 
+                "G": 231, 
+                "R": 254
+              }, 
+              {
+                "A": 255, 
+                "B": 183, 
+                "G": 245, 
+                "R": 231
+              }, 
+              {
+                "A": 255, 
+                "B": 167, 
+                "G": 225, 
+                "R": 183
+              }, 
+              {
+                "A": 255, 
+                "B": 173, 
+                "G": 182, 
+                "R": 116
+              }, 
+              {
+                "A": 255, 
+                "B": 186, 
+                "G": 131, 
+                "R": 43
+              }, 
+              {
+                "A": 0, 
+                "B": 0, 
+                "G": 0, 
+                "R": 0
+              }
+            ], 
+            "interpolate": false
+          }, 
+          "rgb_products": [
+            "relative"
+          ], 
+          "scale_value": 28, 
+          "title": "Relative"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Intertidal Extents Model Relative Layer 25m v2.0", 
+      "zoom_limit": 1000
+    }, 
+    {
+      "abstract": "The Intertidal Extents Model (ITEM) product is a national dataset characterising the spatial extents of the exposed intertidal zone; the land between the observed highest and lowest tide, at intervals of the observed tidal range. ITEM provides the extent and topography of the intertidal zone of Australia's coastline (excluding offshore Territories). This information was derived using observations in the Landsat archive since 1986. ITEM v2.0 has implemented an improved tidal modelling framework over that utilised in ITEM v1.0 (Sagar et al. 2017, 2018) (https://doi.org/10.1016/j.rse.2017.04.009, https://doi.org/10.3390/rs10030480). The expanded Landsat archive within the Digital Earth Australia (DEA) has also enabled the model extent to be increased from ITEM v1.0 to cover a number of offshore reefs, including the full Great Barrier Reef and southern sections of the Torres Strait Islands. ITEM can be a valuable complementary dataset to both onshore LiDAR survey data and coarser offshore bathymetry data, enabling a more realistic representation of the land and ocean interface. More detailed information including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a602cc9eb358. This service provides access to the Intertidal Extents Model v2.0 Confidence Layer product. The confidence layer displays the standard deviation of the water index values (NDWI) derived across the tidal intervals used in generating the core ITEM relative extents product. High values indicate regions where inundation patterns are not driven by tidal influences. This can be a result of change (shoreline, geomorphic, anthropogenic), or caused by errors in the underlying tidal model.", 
+      "data_source": "/g/data2/fk4/datacube/002/ITEM/ITEM_2_0/netcdf", 
+      "name": "item_stddev", 
+      "styles": [
+        {
+          "clip_value": 0.55, 
+          "legend_path": "../share/gsky/static/legend/dea/ITEM_STD_Legend.png", 
+          "name": "stddev", 
+          "offset_value": 0, 
+          "palette": {
+            "colours": [
+              {
+                "A": 255, 
+                "B": 186, 
+                "G": 131, 
+                "R": 43
+              }, 
+              {
+                "A": 255, 
+                "B": 178, 
+                "G": 161, 
+                "R": 85
+              }, 
+              {
+                "A": 255, 
+                "B": 171, 
+                "G": 191, 
+                "R": 128
+              }, 
+              {
+                "A": 255, 
+                "B": 164, 
+                "G": 221, 
+                "R": 171
+              }, 
+              {
+                "A": 255, 
+                "B": 173, 
+                "G": 232, 
+                "R": 199
+              }, 
+              {
+                "A": 255, 
+                "B": 182, 
+                "G": 243, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 111, 
+                "G": 191, 
+                "R": 253
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 125, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 94, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 26, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 26, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 26, 
+                "R": 227
+              }, 
+              {
+                "A": 255, 
+                "B": 28, 
+                "G": 26, 
+                "R": 227
+              }
+            ], 
+            "interpolate": true
+          }, 
+          "rgb_products": [
+            "stddev"
+          ], 
+          "scale_value": 463.6364, 
+          "title": "Confidence"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Intertidal Extents Model Confidence Layer 25m v2.0", 
+      "zoom_limit": 1000
+    }, 
+    {
+      "abstract": "The terrain corrected surface reflectance geometric median (geomedian) is a pixel composite mosaic of a time series of earth observations. Essentially the value of a pixel in a geomedian image is the statistical median of all observations for that pixel from a period of time. For example the 2016 Landsat 8 geomedian image over an area will be the median of Landsat 8 pixels observed for that area in 2016. Multispectral satellite imagery, such as is available from Landsat and Sentinel-2, consists of multiple measurements per pixel: one for each spectral band. In order to create a meaningful median, a median pixel must take all concurrent spectral measurements into account simultaneously as a multi-dimensional set, rather than each measurement independently as occurs with a simple median. The geomedian is a high-dimensional statistic, which calculates a multi-dimensional median from all the spectral measurements from the satellite imagery at the same time, and maintains the relationships among the measurements. This provides a median of the physical conditions measured by the earth observations used to create it, and provides a good representation of a typical pixel observation devoid of outliers, and exhibits reduced spatial noise. Details of the geomedian algortihm are available at https://doi.org/10.1109/TGRS.2017.2723896. As of version 2.0.0, the geometric median products are available as annual datasets, each created from one calendar year of earth observation data from a single satellite. Landsat 5 geometric medians for 2000, 2001, 2002, 2003 and 2008 are not included due to lack of sufficient observations.", 
+      "data_source": "/g/data2/fk4/datacube/002/stats/geomedian/annual/ls5_gm", 
+      "name": "landsat5_geomedian", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Landsat 5 terrain corrected surface reflectance geometric median", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 5 TM surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat5_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 5 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 5 TM surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat5_nbar_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 5 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the terrain corrected surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 5 Thematic Mapper (TM) terrain corrected surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat5_nbart_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 5 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 5 Thematic Mapper (TM) data is available from August 1986 to November 2011. More detailed information about the terrain corrected surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 5 Thematic Mapper (TM) terrain corrected surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS5_TM_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat5_nbart_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 5 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "The terrain corrected surface reflectance geometric median (geomedian) is a pixel composite mosaic of a time series of earth observations. Essentially the value of a pixel in a geomedian image is the statistical median of all observations for that pixel from a period of time. For example the 2016 Landsat 8 geomedian image over an area will be the median of Landsat 8 pixels observed for that area in 2016. Multispectral satellite imagery, such as is available from Landsat and Sentinel-2, consists of multiple measurements per pixel: one for each spectral band. In order to create a meaningful median, a median pixel must take all concurrent spectral measurements into account simultaneously as a multi-dimensional set, rather than each measurement independently as occurs with a simple median. The geomedian is a high-dimensional statistic, which calculates a multi-dimensional median from all the spectral measurements from the satellite imagery at the same time, and maintains the relationships among the measurements. This provides a median of the physical conditions measured by the earth observations used to create it, and provides a good representation of a typical pixel observation devoid of outliers, and exhibits reduced spatial noise. Details of the geomedian algortihm are available at https://doi.org/10.1109/TGRS.2017.2723896. As of version 2.0.0, the geometric median products are available as annual datasets, each created from one calendar year of earth observation data from a single satellite.", 
+      "data_source": "/g/data2/fk4/datacube/002/stats/geomedian/annual/ls7_gm", 
+      "name": "landsat7_geomedian", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Landsat 7 terrain corrected surface reflectance geometric median", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 7 Enhanced Thematic Mapper (ETM+) data is available from May 1999 and onwards. Please note that images from 1st of June 2003 onwards are affected by the failure of scan line corrector which results in strips of missing data. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 7 ETM+ terrain corrected surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS7_ETM_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat7_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 7 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 7 Enhanced Thematic Mapper (ETM+) data is available from May 1999 and onwards. Please note that images from 1st of June 2003 onwards are affected by the failure of scan line corrector which results in strips of missing data. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 7 ETM+ terrain corrected surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS7_ETM_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat7_nbar_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 7 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et. al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 7 Enhanced Thematic Mapper (ETM+) data is available from May 1999 and onwards. Please note that images from 1st of June 2003 are affected by the failure of scan line corrector which results in strips of missing data. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 7 ETM+ terrain corrected surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS7_ETM_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat7_nbart_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 7 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et. al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 7 Enhanced Thematic Mapper (ETM+) data is available from May 1999 and onwards. Please note that images from 1st of June 2003 are affected by the failure of scan line corrector which results in strips of missing data. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 7 ETM+ terrain corrected surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS7_ETM_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat7_nbart_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 7 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "The terrain corrected surface reflectance geometric median (geomedian) is a pixel composite mosaic of a time series of earth observations. Essentially the value of a pixel in a geomedian image is the statistical median of all observations for that pixel from a period of time. For example the 2016 Landsat 8 geomedian image over an area will be the median of Landsat 8 pixels observed for that area in 2016. Multispectral satellite imagery, such as is available from Landsat and Sentinel-2, consists of multiple measurements per pixel: one for each spectral band. In order to create a meaningful median, a median pixel must take all concurrent spectral measurements into account simultaneously as a multi-dimensional set, rather than each measurement independently as occurs with a simple median. The geomedian is a high-dimensional statistic, which calculates a multi-dimensional median from all the spectral measurements from the satellite imagery at the same time, and maintains the relationships among the measurements. This provides a median of the physical conditions measured by the earth observations used to create it, and provides a good representation of a typical pixel observation devoid of outliers, and exhibits reduced spatial noise. Details of the geomedian algortihm are available at https://doi.org/10.1109/TGRS.2017.2723896. As of version 2.0.0, the geometric median products are available as annual datasets, each created from one calendar year of earth observation data from a single satellite.", 
+      "data_source": "/g/data2/fk4/datacube/002/stats/geomedian/annual/ls8_gm", 
+      "name": "landsat8_geomedian", 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2000, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "mas", 
+      "title": "DEA Landsat 8 terrain corrected surface reflectance geometric median", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 8 OLI surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat8_nbar_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 8 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year and satellite view angles using the methods described in Li et al. 2010 https://doi.org/10.1109/JSTARS.2010.2042281. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a501e1c5af. This service provides access to Landsat 8 OLI surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBAR", 
+      "end_isodate": "mas", 
+      "name": "landsat8_nbar_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 8 surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the terrain corrected surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 8 OLI terrain corrected surface reflectance data. The image composites are made from images acquired within a 16 day period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat8_nbart_16day", 
+      "nodata_legend_path": "../share/gsky/data_unavailable.png", 
+      "start_isodate": "mas", 
+      "step_days": 16, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "16-day DEA Landsat 8 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 650
+    }, 
+    {
+      "abstract": "This product has been corrected to remove the influences of the atmosphere, the time of year, terrain shadow and satellite view angles using the methods described in Li et al. 2012 https://doi.org/10.1016/j.rse.2012.06.018. Landsat 8 Operational Land Imager (OLI) data is available from March 2013 and onwards. More detailed information about the terrain corrected surface reflectance product suite produced using Digital Earth Australia including CCBY4.0 is available at http://dx.doi.org/10.4225/25/5a7a76d2e129e. This service provides access to Landsat 8 OLI terrain corrected surface reflectance data. The image composites are made from images acquired within a 24 hour period, and may include clouds.", 
+      "accum": true, 
+      "data_source": "/g/data2/rs0/datacube/002/LS8_OLI_NBART", 
+      "end_isodate": "mas", 
+      "name": "landsat8_nbart_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 4500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "swir1", 
+            "nir", 
+            "green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 2500, 
+          "feature_info_bands": [
+            "blue", 
+            "green", 
+            "red", 
+            "nir", 
+            "swir1", 
+            "swir2", 
+            "ndvi = (nir - red) / (nir + red)", 
+            "ndwi = (green - swir1) / (swir1 + green)"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "red", 
+            "green", 
+            "blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Daily DEA Landsat 8 terrain corrected surface reflectance", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }, 
+    {
+      "abstract": "The Surface Reflectance product has been corrected to account for variations caused by atmospheric properties, sun position and sensor view angle at time of image capture. These corrections have been applied to all satellite imagery in the Sentinel-2 archive. This is undertaken to allow comparison of imagery acquired at different times, by different sensors, in different seasons and in different geographic locations. These products also indicate where the imagery has been affected by cloud or cloud shadow, contains missing data or has been affected in other ways. The Surface Reflectance products are useful as a fundamental starting point for any further analysis and are the underlying data of all other Digital Earth Australia products.", 
+      "accum": true, 
+      "data_source": "/g/data1b/if87/datacube/002/S2_MSI_ARD", 
+      "end_isodate": "mas", 
+      "name": "sentinel2_nbart_daily", 
+      "start_isodate": "mas", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "abstract": "The false colour composite is composed from the visible, near infrared and mid infrared wavelengths of light, this wavelength combination highlights vegetation as green, water as blue, and bare soil as pinks-browns.", 
+          "clip_value": 3000, 
+          "feature_info_bands": [
+            "nbart_blue", 
+            "nbart_green", 
+            "nbart_nir_1", 
+            "nbart_red", 
+            "nbart_swir_2"
+          ], 
+          "name": "fc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "nbart_swir_2", 
+            "nbart_nir_1", 
+            "nbart_green"
+          ], 
+          "title": "False colour"
+        }, 
+        {
+          "abstract": "The true colour composite is composed of wavelengths of light as seen by the human eye.", 
+          "clip_value": 3000, 
+          "feature_info_bands": [
+            "nbart_blue", 
+            "nbart_green", 
+            "nbart_nir_1", 
+            "nbart_red", 
+            "nbart_swir_2"
+          ], 
+          "name": "tc", 
+          "offset_value": 0, 
+          "rgb_products": [
+            "nbart_red", 
+            "nbart_green", 
+            "nbart_blue"
+          ], 
+          "title": "True colour"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "Sentinel 2 Analysis Ready Data (Beta)", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 500
+    }, 
+    {
+      "abstract": "Water Observations from Space (WOfS) is a gridded dataset indicating areas where surface water has been observed using the Geoscience Australia (GA) Earth observation satellite data holdings. The current product (Version 2.1.5) includes observations taken between 1986 and 2017 (inclusive) from the Landsat 5, 7 and 8 satellites. WOfS covers all of mainland Australia and Tasmania but excludes off-shore Territories. WOfS shows water observed for every Landsat-5, Landsat-7 and Landsat-8 image across Australia (excluding External Territories) for the period of 1986 to 2017. The dataset is updated on as as-needs basis and is expected to increase in update frequency in the future so that as a satellite acquires data, it will automatically be analysed for the presence of water and added to the WOfS product in near real time. Data is provided as Water Observation Feature Layers (WOFLs), in a 1 to 1 relationship with the input satellite data. Hence there is one WOFL for each satellite dataset processed for the occurrence of water. The details of the WOfS algorithm and derived statistics are available at http://dx.doi.org/10.1016/j.rse.2015.11.003.", 
+      "accum": true, 
+      "data_source": "/g/data2/fk4/datacube/002/WOfS/WOfS_25_2_1", 
+      "end_isodate": "mas", 
+      "name": "wofs", 
+      "start_isodate": "1986-08-15T00:00:00.000Z", 
+      "step_days": 1, 
+      "styles": [
+        {
+          "clip_value": 254, 
+          "legend_path": "../share/gsky/static/legend/dea/wofs.png", 
+          "mask": {
+            "bit_tests": [
+              "0000000000000001", 
+              "0000000000000001"
+            ], 
+            "data_source": "/g/data2/fk4/datacube/002/WOfS/WOfS_25_2_1", 
+            "id": "water", 
+            "inclusive": true
+          }, 
+          "name": "water", 
+          "offset_value": 0, 
+          "palette": {
+            "colours": [
+              {
+                "A": 255, 
+                "B": 148, 
+                "G": 150, 
+                "R": 217
+              }, 
+              {
+                "A": 255, 
+                "B": 255, 
+                "G": 255, 
+                "R": 255
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 189, 
+                "G": 129, 
+                "R": 79
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 189, 
+                "G": 129, 
+                "R": 79
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }, 
+              {
+                "A": 255, 
+                "B": 112, 
+                "G": 112, 
+                "R": 112
+              }
+            ], 
+            "interpolate": false
+          }, 
+          "rgb_products": [
+            "water"
+          ], 
+          "title": "Water"
+        }
+      ], 
+      "time_generator": "regular", 
+      "title": "DEA Water Observation Feature Layer", 
+      "wcs_max_height": 10240, 
+      "wcs_max_tile_height": 512, 
+      "wcs_max_tile_width": 512, 
+      "wcs_max_width": 10240, 
+      "wcs_timeout": 180, 
+      "zoom_limit": 5000
+    }
+  ], 
+  "processes": [] 
+}
