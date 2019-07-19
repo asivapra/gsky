@@ -56,7 +56,7 @@ var (
 	verbose         = flag.Bool("v", false, "Verbose mode for more server outputs.")
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
-	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
+	create_tile     = flag.Bool("create_tile", true, "For Google Earth Web Service.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -109,11 +109,12 @@ func FloatToString(input_num float64) string {
     // to convert a float number to a string
     return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
-var	bboxes3857 [16]string
+var	bboxes3857 [57]string
 var	bboxes4326 [16]string
-var	blankbox [4]string
+var	blankbox [27]string
 var	ausTiles [16]string
 func AusTiles() {
+// 300km
 	bboxes3857[0] = ""
 	bboxes3857[1] = ""
 	bboxes3857[2] = "15028131.25709194_-6261721.35712164_16280475.52851626_-5009377.08569731"
@@ -130,6 +131,50 @@ func AusTiles() {
 	bboxes3857[13] = "13775786.98566760_-2504688.54284865_15028131.25709194_-1252344.27142433"
 	bboxes3857[14] = "15028131.25709194_-2504688.54284865_16280475.52851626_-1252344.27142433"
 	bboxes3857[15] = "16280475.52851626_-2504688.54284865_17532819.79994059_-1252344.27142433"
+
+// 200km	
+	bboxes3857[16] = "12523442.71424328_-4383204.94998515_13149614.84995544_-3757032.81427298";
+	bboxes3857[17] = "12523442.71424328_-3757032.81427298_13149614.84995544_-3130860.67856082";
+	bboxes3857[18] = "12523442.71424328_-3130860.67856082_13149614.84995544_-2504688.54284865";
+	bboxes3857[19] = "12523442.71424328_-2504688.54284865_13149614.84995544_-1878516.40713649";
+	bboxes3857[20] = "13149614.84995544_-4383204.94998515_13775786.98566760_-3757032.81427298";
+	bboxes3857[21] = "13149614.84995544_-3757032.81427298_13775786.98566760_-3130860.67856082";
+	bboxes3857[22] = "13149614.84995544_-3130860.67856082_13775786.98566760_-2504688.54284865";
+	bboxes3857[23] = "13149614.84995544_-2504688.54284865_13775786.98566760_-1878516.40713649";
+	bboxes3857[24] = "13149614.84995544_-1878516.40713649_13775786.98566760_-1252344.27142433";
+	bboxes3857[25] = "13775786.98566760_-4383204.94998515_14401959.12137977_-3757032.81427298";
+	bboxes3857[26] = "13775786.98566760_-3757032.81427298_14401959.12137977_-3130860.67856082";
+	bboxes3857[27] = "13775786.98566760_-3130860.67856082_14401959.12137977_-2504688.54284865";
+	bboxes3857[28] = "13775786.98566760_-2504688.54284865_14401959.12137977_-1878516.40713649";
+	bboxes3857[29] = "13775786.98566760_-1878516.40713649_14401959.12137977_-1252344.27142433";
+	bboxes3857[30] = "14401959.12137977_-4383204.94998515_15028131.25709194_-3757032.81427298";
+	bboxes3857[31] = "14401959.12137977_-3757032.81427298_15028131.25709194_-3130860.67856082";
+	bboxes3857[32] = "14401959.12137977_-3130860.67856082_15028131.25709194_-2504688.54284865";
+	bboxes3857[33] = "14401959.12137977_-2504688.54284865_15028131.25709194_-1878516.40713649";
+	bboxes3857[34] = "14401959.12137977_-1878516.40713649_15028131.25709194_-1252344.27142433";
+	bboxes3857[35] = "15028131.25709194_-5009377.08569731_15654303.39280410_-4383204.94998515";
+	bboxes3857[36] = "15028131.25709194_-4383204.94998515_15654303.39280410_-3757032.81427298";
+	bboxes3857[37] = "15028131.25709194_-3757032.81427298_15654303.39280410_-3130860.67856082";
+	bboxes3857[38] = "15028131.25709194_-3130860.67856082_15654303.39280410_-2504688.54284865";
+	bboxes3857[39] = "15028131.25709194_-2504688.54284865_15654303.39280410_-1878516.40713649";
+	bboxes3857[40] = "15028131.25709194_-1878516.40713649_15654303.39280410_-1252344.27142433";
+	bboxes3857[41] = "15654303.39280410_-5635549.22140947_16280475.52851626_-5009377.08569731";
+	bboxes3857[42] = "15654303.39280410_-5009377.08569731_16280475.52851626_-4383204.94998515";
+	bboxes3857[43] = "15654303.39280410_-4383204.94998515_16280475.52851626_-3757032.81427298";
+	bboxes3857[44] = "15654303.39280410_-3757032.81427298_16280475.52851626_-3130860.67856082";
+	bboxes3857[45] = "15654303.39280410_-3130860.67856082_16280475.52851626_-2504688.54284865";
+	bboxes3857[46] = "15654303.39280410_-2504688.54284865_16280475.52851626_-1878516.40713649";
+	bboxes3857[47] = "15654303.39280410_-1878516.40713649_16280475.52851626_-1252344.27142433";
+	bboxes3857[48] = "16280475.52851626_-5635549.22140947_16906647.66422843_-5009377.08569731";
+	bboxes3857[49] = "16280475.52851626_-5009377.08569731_16906647.66422843_-4383204.94998515";
+	bboxes3857[50] = "16280475.52851626_-4383204.94998515_16906647.66422843_-3757032.81427298";
+	bboxes3857[51] = "16280475.52851626_-3757032.81427298_16906647.66422843_-3130860.67856082";
+	bboxes3857[52] = "16280475.52851626_-3130860.67856082_16906647.66422843_-2504688.54284865";
+	bboxes3857[53] = "16280475.52851626_-2504688.54284865_16906647.66422843_-1878516.40713649";
+	bboxes3857[54] = "16906647.66422843_-4383204.94998515_17532819.79994059_-3757032.81427298";
+	bboxes3857[55] = "16906647.66422843_-3757032.81427298_17532819.79994059_-3130860.67856082";
+	bboxes3857[56] = "16906647.66422843_-3130860.67856082_17532819.79994059_-2504688.54284865";
+	
 	
 	bboxes4326[0] = ""
 	bboxes4326[1] = ""
@@ -152,6 +197,30 @@ func AusTiles() {
 	blankbox[1] = "13775786.98566760_-6261721.35712164_15028131.25709194_-5009377.08569731"
 	blankbox[2] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
 	blankbox[3] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
+
+	blankbox[4] = "12523442.71424328_-1252344.27142433_13149614.84995544_-626172.13571217"
+	blankbox[5] = "13149614.84995544_-1252344.27142433_13775786.98566760_-626172.13571217"
+	blankbox[6] = "13775786.98566760_-1252344.27142433_14401959.12137977_-626172.13571217"
+	blankbox[7] = "14401959.12137977_-1252344.27142433_15028131.25709194_-626172.13571217"
+	blankbox[8] = "15028131.25709194_-1252344.27142433_15654303.39280410_-626172.13571217"
+	blankbox[9] = "15654303.39280410_-1252344.27142433_16280475.52851626_-626172.13571217"
+	blankbox[10] = "16280475.52851626_-1252344.27142433_16906647.66422843_-626172.13571217"
+	blankbox[11] = "16906647.66422843_-1252344.27142433_17532819.79994059_-626172.13571217"
+	blankbox[12] = "12523442.71424328_-1878516.40713649_13149614.84995544_-1252344.27142433"
+	blankbox[13] = "16280475.52851626_-1878516.40713649_16906647.66422843_-1252344.27142433"
+	blankbox[14] = "16906647.66422843_-1878516.40713649_17532819.79994059_-1252344.27142433"
+	blankbox[15] = "16906647.66422843_-2504688.54284865_17532819.79994059_-1878516.40713649"
+	blankbox[16] = "12523442.71424328_-5009377.08569731_13149614.84995544_-4383204.94998515"
+	blankbox[17] = "13149614.84995544_-5009377.08569731_13775786.98566760_-4383204.94998515"
+	blankbox[18] = "13775786.98566760_-5009377.08569731_14401959.12137977_-4383204.94998515"
+	blankbox[19] = "14401959.12137977_-5009377.08569731_15028131.25709194_-4383204.94998515"
+	blankbox[20] = "12523442.71424328_-5635549.22140947_13149614.84995544_-5009377.08569731"
+	blankbox[21] = "13149614.84995544_-5635549.22140947_13775786.98566760_-5009377.08569731"
+	blankbox[22] = "13775786.98566760_-5635549.22140947_14401959.12137977_-5009377.08569731"
+	blankbox[23] = "14401959.12137977_-5635549.22140947_15028131.25709194_-5009377.08569731"
+	blankbox[24] = "15028131.25709194_-5635549.22140947_15654303.39280410_-5009377.08569731"
+	blankbox[25] = "16906647.66422843_-5009377.08569731_17532819.79994059_-4383204.94998515"
+	blankbox[26] = "16906647.66422843_-5635549.22140947_17532819.79994059_-5009377.08569731"
 /*
 Exclude if...
 
@@ -163,7 +232,7 @@ minY > -10.5
 */
 }
 
-func Convert_bbox_into_4326(params utils.WMSParams) string {
+func Convert_bbox_into_4326(params utils.WMSParams, showAll int) string {
 		x1 :=     FloatToString(params.BBox[0])
 		y1 :=     FloatToString(params.BBox[1])
 	    x1_y1, _ := exec.Command("/home/900/avs900/tmp/conv_3857_to_4326.py",x1,y1).Output()
@@ -187,8 +256,12 @@ func Convert_bbox_into_4326(params utils.WMSParams) string {
         diffX := int(maX - miX)
         diffY := int(maY - miY)
 		box := fmt.Sprintf("")
-        if ((maX > 112.5 && miX < 153.5 && maY > -43.5 && miY < -10.5) && (diffX < 12 && diffY < 12) && (miX != 90.0 && maY != 0.0)) {
-        	box = fmt.Sprintf("(%v,%v,%v,%v)\n", minX, minY, maxX, maxY)
+		if (showAll == 1) {
+			box = fmt.Sprintf("(%v,%v,%v,%v)\n", minX, minY, maxX, maxY)
+		} else {
+			if ((maX > 112.5 && miX < 153.5 && maY > -43.5 && miY < -10.5) && (diffX < 12 && diffY < 12) && (miX != 90.0 && maY != 0.0)) {
+				box = fmt.Sprintf("(%v,%v,%v,%v)\n", minX, minY, maxX, maxY)
+			}
 		}
 		return box
 }
@@ -468,7 +541,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 // If yes, they must be fetched as PNG files from disk and written out.
 // If not in the list, then fetch it as normal GSKY tile
 //		bbox3857 := fmt.Sprintf("(%.8f,%.8f,%.8f,%.8f)\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-//		bbox4326 := Convert_bbox_into_4326(params)
+//		bbox4326 := Convert_bbox_into_4326(params,0)
 //fmt.Printf("%+v", bbox4326)
 //outfile := "/local/avs900/tmp/bbox4326.txt"
 //WriteOut(outfile,bbox4326);
@@ -490,10 +563,21 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			reqRes = reqRes * 100000
 		}
 		layer := query["layers"][0]
+//Pb(*create_tile)
 		if(!*create_tile) {
 			bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//P(bbox3857)
+/*			
+ts1 := fmt.Sprintf("%v",*params.Time) 
+date1 := strings.Split(ts1, " ")
+if (date1[0] == "1986-08-15") {
+//	bbox4326a := Convert_bbox_into_4326(params, 1)
+	fmt.Printf("%+v\n", bbox3857 )
+}
+*/
 			for _, a := range bboxes3857 {
 				if strings.TrimRight(a, "\n") == bbox3857 {
+//P(bbox3857)
 					ts := fmt.Sprintf("%v",*params.Time) 
 					date := strings.Split(ts, " ")
 					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
@@ -505,7 +589,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				}
 			}
 // AVS: Send a blank tile if the box is empty		
-			bbox4326 := Convert_bbox_into_4326(params)
+			bbox4326 := Convert_bbox_into_4326(params,0)
 			if (bbox4326 == "") {
 				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
 				ReadPNG(tile_file, w)
@@ -520,61 +604,61 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 					return
 				}
 			}
-		}
 //conf.Layers[idx].ZoomLimit = 0.00	
 //fmt.Printf("ctx: %v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)					
-		if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
-			bbox4326 := Convert_bbox_into_4326(params)
-			if (bbox4326 == "") {
-				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+			if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
+				bbox4326 := Convert_bbox_into_4326(params, 0)
+				if (bbox4326 == "") {
+					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+					ReadPNG(tile_file, w)
+					return
+				}
+				tile_file := utils.DataDir+"/zoom.png"
 				ReadPNG(tile_file, w)
 				return
-			}
-			tile_file := utils.DataDir+"/zoom.png"
-			ReadPNG(tile_file, w)
-			return
-			indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
-			go func() {
-				geoReq.Mask = nil
-				geoReq.QueryLimit = 1
-				indexer.In <- geoReq
-				close(indexer.In)
-			}()
-
-			go indexer.Run(*verbose)
-			hasData := false
-			for geo := range indexer.Out {
-				select {
-				case <-errChan:
-					break
-				case <-ctx.Done():
-					break
-				default:
-					if geo.NameSpace != "EmptyTile" {
-						hasData = true
+				indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
+				go func() {
+					geoReq.Mask = nil
+					geoReq.QueryLimit = 1
+					indexer.In <- geoReq
+					close(indexer.In)
+				}()
+	
+				go indexer.Run(*verbose)
+				hasData := false
+				for geo := range indexer.Out {
+					select {
+					case <-errChan:
+						break
+					case <-ctx.Done():
+						break
+					default:
+						if geo.NameSpace != "EmptyTile" {
+							hasData = true
+							break
+						}
+					}
+	
+					if hasData {
 						break
 					}
 				}
-
 				if hasData {
-					break
-				}
-			}
-			if hasData {
-				out, err := utils.GetEmptyTile(utils.DataDir+"/zoom.png", *params.Height, *params.Width)
-				if err != nil {
-					Info.Printf("Error in the utils.GetEmptyTile(zoom.png): %v\n", err)
-					http.Error(w, err.Error(), 500)
-					return
-				}
-				w.Write(out)
-			} else {
-				out, err := utils.GetEmptyTile("", *params.Height, *params.Width)
-				if err != nil {
-					Info.Printf("Error in the utils.GetEmptyTile(): %v\n", err)
-					http.Error(w, err.Error(), 500)
-				} else {
+					out, err := utils.GetEmptyTile(utils.DataDir+"/zoom.png", *params.Height, *params.Width)
+					if err != nil {
+						Info.Printf("Error in the utils.GetEmptyTile(zoom.png): %v\n", err)
+						http.Error(w, err.Error(), 500)
+						return
+					}
 					w.Write(out)
+				} else {
+					out, err := utils.GetEmptyTile("", *params.Height, *params.Width)
+					if err != nil {
+						Info.Printf("Error in the utils.GetEmptyTile(): %v\n", err)
+						http.Error(w, err.Error(), 500)
+					} else {
+						w.Write(out)
+					}
 				}
 			}
 		}
