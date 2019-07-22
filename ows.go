@@ -56,7 +56,7 @@ var (
 	verbose         = flag.Bool("v", false, "Verbose mode for more server outputs.")
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
-	create_tile     = flag.Bool("create_tile", true, "For Google Earth Web Service.")
+	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -114,6 +114,7 @@ var	bboxes4326 [16]string
 var	blankbox [27]string
 var	ausTiles [16]string
 func AusTiles() {
+/*	
 // 300km
 	bboxes3857[0] = ""
 	bboxes3857[1] = ""
@@ -192,12 +193,11 @@ func AusTiles() {
 	bboxes4326[13] = "123.75,-21.9430455334,135.0,-11.1784018737"
 	bboxes4326[14] = "135.0,-21.9430455334,146.25,-11.1784018737"
 	bboxes4326[15] = "146.25,-21.9430455334,157.5,-11.1784018737"
-
+*/
 	blankbox[0] = "13775786.98566760_-6261721.35712164_15028131.25709194_-5009377.08569731"
 	blankbox[1] = "13775786.98566760_-6261721.35712164_15028131.25709194_-5009377.08569731"
 	blankbox[2] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
 	blankbox[3] = "12523442.71424328_-6261721.35712164_13775786.98566760_-5009377.08569731"
-
 	blankbox[4] = "12523442.71424328_-1252344.27142433_13149614.84995544_-626172.13571217"
 	blankbox[5] = "13149614.84995544_-1252344.27142433_13775786.98566760_-626172.13571217"
 	blankbox[6] = "13775786.98566760_-1252344.27142433_14401959.12137977_-626172.13571217"
@@ -221,6 +221,9 @@ func AusTiles() {
 	blankbox[24] = "15028131.25709194_-5635549.22140947_15654303.39280410_-5009377.08569731"
 	blankbox[25] = "16906647.66422843_-5009377.08569731_17532819.79994059_-4383204.94998515"
 	blankbox[26] = "16906647.66422843_-5635549.22140947_17532819.79994059_-5009377.08569731"
+}
+
+func Convert_bbox_into_4326(params utils.WMSParams, showAll int) string {
 /*
 Exclude if...
 
@@ -230,9 +233,6 @@ minX > 153.5
 maxY < -43.5
 minY > -10.5
 */
-}
-
-func Convert_bbox_into_4326(params utils.WMSParams, showAll int) string {
 		x1 :=     FloatToString(params.BBox[0])
 		y1 :=     FloatToString(params.BBox[1])
 	    x1_y1, _ := exec.Command("/home/900/avs900/tmp/conv_3857_to_4326.py",x1,y1).Output()
@@ -566,7 +566,12 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 //Pb(*create_tile)
 		if(!*create_tile) {
 			bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+			tile_file := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f.png", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 //P(bbox3857)
+// For 20km and lower, just display the BBOX and return. This will be for creating the tiles
+//tile_file0 := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+//ReadPNG(tile_file0, w)
+//return
 /*			
 ts1 := fmt.Sprintf("%v",*params.Time) 
 date1 := strings.Split(ts1, " ")
@@ -575,11 +580,26 @@ if (date1[0] == "1986-08-15") {
 	fmt.Printf("%+v\n", bbox3857 )
 }
 */
-			for _, a := range bboxes3857 {
-				if strings.TrimRight(a, "\n") == bbox3857 {
-//P(bbox3857)
-					ts := fmt.Sprintf("%v",*params.Time) 
-					date := strings.Split(ts, " ")
+			ts := fmt.Sprintf("%v",*params.Time) 
+			date := strings.Split(ts, " ")
+			tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
+			tile_files, err := ioutil.ReadDir(tile_dir)
+			if err != nil {
+				log.Fatal(err)
+			}
+/*		
+			for _, f := range tile_files {
+					fmt.Println(f.Name())
+			}
+return   
+*/
+			for _, a := range tile_files {
+				tile_file_in_dir := fmt.Sprintf("%s", a.Name())
+//fmt.Println(a.Name())
+				if strings.TrimRight(tile_file_in_dir, "\n") == tile_file {
+//fmt.Printf("%v, %v\n", tile_file_in_dir, tile_file )
+					ts = fmt.Sprintf("%v",*params.Time) 
+					date = strings.Split(ts, " ")
 					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
 					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 					tile_file := tile_dir + "/" + s + ".png" ;
