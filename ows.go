@@ -54,9 +54,12 @@ var (
 	validateConfig  = flag.Bool("check_conf", false, "Validate server config files.")
 	dumpConfig      = flag.Bool("dump_conf", false, "Dump server config files.")
 	verbose         = flag.Bool("v", false, "Verbose mode for more server outputs.")
+// AVS: added
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
 	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
+	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
+	tiles_cached    = flag.Bool("tc", false, "Tiles for this time slice are cached.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -67,7 +70,6 @@ var (
 	Error *log.Logger
 	Info  *log.Logger
 )
-
 
 // AVS: Debugging functions
 // AVS
@@ -269,7 +271,7 @@ func ReadPNG(tile_file string, w http.ResponseWriter) {
     file, err := os.Open(tile_file)
     if err != nil {
 //        log.Fatal(err)
-		tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+		tile_file := *tile_basedir + "blank.png"
 		ReadPNG(tile_file, w)
     }
     defer file.Close()
@@ -290,7 +292,7 @@ func WriteOut(outfile string, data string) {
 		panic(err)
 	}
 }
-// -----------------------------------------------
+//------------------------------------------------------------------------------
 
 // init initialises the Error logger, checks
 // required files are in place  and sets Config struct.
@@ -563,13 +565,16 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			reqRes = reqRes * 100000
 		}
 		layer := query["layers"][0]
-//Pb(*create_tile)
 		if(!*create_tile) {
-			bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-			tile_file := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f.png", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//			bbox3857 := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 //P(bbox3857)
+//Pf(longdiff)
+
+
+//			tile_file := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f.png", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//fmt.Printf("tile_basedir: %+v\n", *tile_basedir)
 // For 20km and lower, just display the BBOX and return. This will be for creating the tiles
-//tile_file0 := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+//tile_file0 := *tile_basedir + "blank.png"
 //ReadPNG(tile_file0, w)
 //return
 /*			
@@ -580,56 +585,93 @@ if (date1[0] == "1986-08-15") {
 	fmt.Printf("%+v\n", bbox3857 )
 }
 */
+/* 
+AVS: Build the tile_dir name from layer and date
+	- If this dir has an empty file called 'cached', then use the tiles in this dir
+	- If no 'cached', then this layer and/or date is not cached. So, get the data from GSKY
+*/
 			ts := fmt.Sprintf("%v",*params.Time) 
 			date := strings.Split(ts, " ")
-			tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
-			tile_files, err := ioutil.ReadDir(tile_dir)
-			if err != nil {
-				log.Fatal(err)
+			tile_dir := *tile_basedir + layer + "/" + date[0]
+			var use_cached_tiles = *tiles_cached
+			cached := tile_dir + "/" + "cached";
+			if _, err := os.Stat(cached); err == nil {
+				use_cached_tiles = true
 			}
-/*		
-			for _, f := range tile_files {
-					fmt.Println(f.Name())
-			}
-return   
+/*
+AVS: The zoom levels 10km to 5000km alone are cached.
+	- If the zoom level is below 10km, skip the tile_dir and go to GSKY
+	- It is determined by looking at the diff between the minX and maxX values (see below)
+5km = +19567.879241
+10km = +39135.758482
+20km = +78271.516964
+50km = +156543.033928
+100km = +313086.067856
+200km = +626172.135712
+300km = +1252344.271424
+500km = +2504688.542849
+1000km = +5009377.085697
+3000km = +10018754.171395
+5000km = +20037508.342789
 */
-			for _, a := range tile_files {
-				tile_file_in_dir := fmt.Sprintf("%s", a.Name())
-//fmt.Println(a.Name())
-				if strings.TrimRight(tile_file_in_dir, "\n") == tile_file {
-//fmt.Printf("%v, %v\n", tile_file_in_dir, tile_file )
-					ts = fmt.Sprintf("%v",*params.Time) 
-					date = strings.Split(ts, " ")
-					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
-					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-					tile_file := tile_dir + "/" + s + ".png" ;
-//P(tile_file)
+			var longdiff float64
+			longdiff = params.BBox[2] - params.BBox[0]
+fmt.Printf("%v, %v, %v\n", longdiff, use_cached_tiles, cached)
+			if (use_cached_tiles && longdiff > 19568.00 ) {
+//			if (longdiff > 19568.00 ) {
+				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+				tile_file := tile_dir + "/" + s + ".png" ;
+				if _, err := os.Stat(tile_file); err == nil {
+					ReadPNG(tile_file, w)
+					return
+				} else {
+					tile_file := *tile_basedir + "blank.png"
 					ReadPNG(tile_file, w)
 					return
 				}
-			}
-// AVS: Send a blank tile if the box is empty		
-			bbox4326 := Convert_bbox_into_4326(params,0)
-			if (bbox4326 == "") {
-				tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-				ReadPNG(tile_file, w)
-				return
-			}
-// AVS: Send a blank tile if the box is outside Australia		
+
+/*				
+				tile_files, err := ioutil.ReadDir(tile_dir)
+				if err != nil {
+					log.Fatal(err)
+				}
+				for _, a := range tile_files {
+					tile_file_in_dir := fmt.Sprintf("%s", a.Name())
+					if strings.TrimRight(tile_file_in_dir, "\n") == tile_file {
+						ts = fmt.Sprintf("%v",*params.Time) 
+						date = strings.Split(ts, " ")
+						tile_dir := *tile_basedir + layer + "/" + date[0]
+						s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+						tile_file := tile_dir + "/" + s + ".png" ;
+						ReadPNG(tile_file, w)
+						return
+					}
+				}
+	// AVS: Send a blank tile if the box is empty		
+				bbox4326 := Convert_bbox_into_4326(params,0)
+				if (bbox4326 == "") {
+					tile_file := *tile_basedir + "blank.png"
+					ReadPNG(tile_file, w)
+					return
+				}
+	// AVS: Send a blank tile if the box is outside Australia		
 //fmt.Printf("%+v\n", bbox3857)
-			for _, a := range blankbox {
-				if strings.TrimRight(a, "\n") == bbox3857 {
-					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
-					ReadPNG(tile_file, w)
-					return
+				for _, a := range blankbox {
+					if strings.TrimRight(a, "\n") == bbox3857 {
+						tile_file := *tile_basedir + "blank.png"
+						ReadPNG(tile_file, w)
+						return
+					}
 				}
+*/				
 			}
 //conf.Layers[idx].ZoomLimit = 0.00	
-//fmt.Printf("ctx: %v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)					
+//fmt.Printf("ctx: %v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)	
+P("Here-1")
 			if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
 				bbox4326 := Convert_bbox_into_4326(params, 0)
 				if (bbox4326 == "") {
-					tile_file := "/local/avs900/Australia/landsat8_nbar_16day/2013-03-17/blank.png"
+					tile_file := *tile_basedir + "blank.png"
 					ReadPNG(tile_file, w)
 					return
 				}
@@ -724,7 +766,7 @@ return
 					ts := fmt.Sprintf("%v",*params.Time) 
 					date := strings.Split(ts, " ")
 					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-					tile_dir := "/local/avs900/Australia/DEA_Tiles/" + layer + "/" + date[0]
+					tile_dir := *tile_basedir + layer + "/" + date[0]
 					os.Mkdir(tile_dir, 0755)
 					tile_file := tile_dir + "/" + s + ".png" ;
 //fmt.Printf("%+v\n", tile_file)
