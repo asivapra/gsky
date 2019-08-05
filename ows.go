@@ -58,8 +58,9 @@ var (
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
 	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
-	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
-	tiles_cached    = flag.Bool("tc", false, "Tiles for this time slice are cached.")
+//	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
+	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/Himawari8/", "Server data directory.")
+	use_cached_tiles    = flag.Bool("tc", true, "Tiles for this time slice are cached.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -380,8 +381,8 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			http.Error(w, fmt.Sprintf("This server can only accept WMS requests compliant with version 1.1.1 and 1.3.0: %s", reqURL), 400)
 			return
 		}
-
 		for iLayer := range conf.Layers {
+//fmt.Printf("iLayer: %+v\n", iLayer)
 			conf.GetLayerDates(iLayer, *verbose)
 		}
 
@@ -592,12 +593,14 @@ AVS: Build the tile_dir name from layer and date
 */
 			ts := fmt.Sprintf("%v",*params.Time) 
 			date := strings.Split(ts, " ")
-			tile_dir := *tile_basedir + layer + "/" + date[0]
-			var use_cached_tiles = *tiles_cached
-			cached := tile_dir + "/" + "cached";
-			if _, err := os.Stat(cached); err == nil {
-				use_cached_tiles = true
-			}
+			tile_dir := *tile_basedir + layer + "/" + date[0] + "T" + date[1] + ".000Z"
+//P(tile_dir)					
+//			var use_cached_tiles = *tiles_cached
+//			cached := tile_dir + "/" + "cached";
+//P(cached)
+//			if _, err := os.Stat(cached); err == nil {
+//				use_cached_tiles = true
+//			}
 /*
 AVS: The zoom levels 10km to 5000km alone are cached.
 	- If the zoom level is below 10km, skip the tile_dir and go to GSKY
@@ -616,11 +619,14 @@ AVS: The zoom levels 10km to 5000km alone are cached.
 */
 			var longdiff float64
 			longdiff = params.BBox[2] - params.BBox[0]
-fmt.Printf("%v, %v, %v\n", longdiff, use_cached_tiles, cached)
-			if (use_cached_tiles && longdiff > 19568.00 ) {
-//			if (longdiff > 19568.00 ) {
-				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//Pf(longdiff)	
+//Pb(use_cached_tiles)
+//fmt.Printf("%v, %v, %v\n", longdiff, use_cached_tiles, cached)
+			if (*use_cached_tiles && longdiff > 19568.00 ) {
+//				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+				s := fmt.Sprintf("%.0f_%.0f_%.0f_%.0f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
 				tile_file := tile_dir + "/" + s + ".png" ;
+//P(tile_file)					
 				if _, err := os.Stat(tile_file); err == nil {
 					ReadPNG(tile_file, w)
 					return
@@ -667,7 +673,7 @@ fmt.Printf("%v, %v, %v\n", longdiff, use_cached_tiles, cached)
 			}
 //conf.Layers[idx].ZoomLimit = 0.00	
 //fmt.Printf("ctx: %v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)	
-P("Here-1")
+//P("Here-1")
 			if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
 				bbox4326 := Convert_bbox_into_4326(params, 0)
 				if (bbox4326 == "") {
