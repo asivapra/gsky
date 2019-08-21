@@ -58,8 +58,8 @@ var (
 	thredds         = flag.Bool("t", false, "Save the *.nc files on THREDDS.")
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
 	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
-//	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
-	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/Himawari8/", "Server data directory.")
+	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
+//	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/Himawari8/", "Server data directory.")
 	use_cached_tiles    = flag.Bool("tc", true, "Tiles for this time slice are cached.")
 )
 
@@ -593,7 +593,8 @@ AVS: Build the tile_dir name from layer and date
 */
 			ts := fmt.Sprintf("%v",*params.Time) 
 			date := strings.Split(ts, " ")
-			tile_dir := *tile_basedir + layer + "/" + date[0] + "T" + date[1] + ".000Z"
+//			tile_dir := *tile_basedir + layer + "/" + date[0] + "T" + date[1] + ".000Z" // For Himawari8
+			tile_dir := *tile_basedir + layer + "/" + date[0] // For DEA
 //P(tile_dir)					
 //			var use_cached_tiles = *tiles_cached
 //			cached := tile_dir + "/" + "cached";
@@ -622,9 +623,17 @@ AVS: The zoom levels 10km to 5000km alone are cached.
 //Pf(longdiff)	
 //Pb(use_cached_tiles)
 //fmt.Printf("%v, %v, %v\n", longdiff, use_cached_tiles, cached)
-			if (*use_cached_tiles && longdiff > 19568.00 ) {
-//				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-				s := fmt.Sprintf("%.0f_%.0f_%.0f_%.0f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
+//			if (*use_cached_tiles && longdiff > 156544.00 && date[0] != "2013-03-19") {
+//			zoom_level := 19568.00
+			zoom_level := 156544.00
+			if (date[0] == "2013-03-19" || date[0] == "2013-04-04" || layer == "sentinel2_nbart_daily") {
+				zoom_level = 19568.00;
+			}
+//fmt.Printf("%v, %v, %v\n", layer, longdiff, date[0])
+			if (*use_cached_tiles && longdiff > zoom_level ) {
+				s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+//				s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+//				s := fmt.Sprintf("%.0f_%.0f_%.0f_%.0f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For Himawari8
 				tile_file := tile_dir + "/" + s + ".png" ;
 //P(tile_file)					
 				if _, err := os.Stat(tile_file); err == nil {
@@ -632,6 +641,7 @@ AVS: The zoom levels 10km to 5000km alone are cached.
 					return
 				} else {
 					tile_file := *tile_basedir + "blank.png"
+//P(tile_file)					
 					ReadPNG(tile_file, w)
 					return
 				}
@@ -772,7 +782,7 @@ AVS: The zoom levels 10km to 5000km alone are cached.
 					ts := fmt.Sprintf("%v",*params.Time) 
 					date := strings.Split(ts, " ")
 					s := fmt.Sprintf("%.8f_%.8f_%.8f_%.8f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3])
-					tile_dir := *tile_basedir + layer + "/" + date[0]
+					tile_dir := *tile_basedir + layer + "/" + date[0] + "/10km"
 					os.Mkdir(tile_dir, 0755)
 					tile_file := tile_dir + "/" + s + ".png" ;
 //fmt.Printf("%+v\n", tile_file)
