@@ -225,19 +225,51 @@ func CreateSubsetTile(ori_params string, new_params string, tile_dir string, til
 	// Crop the subset tile
 	crop := fmt.Sprintf("%vx%v+%v+%v",w,h,x,y)
 
-	tmp_tile_dir := "/tmp"
+	tmp_dir := "/tmp"
 	s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", xn, yn, Xn, Yn) // For DEA
-	subset_tile := tmp_tile_dir + "/" + s + ".png"
+	subset_tile := tmp_dir + "/" + s + ".png"
 	cmd := exec.Command("/usr/bin/convert", tile_file, "-crop", crop, "+repage", subset_tile)
-	cmd.Dir = tmp_tile_dir
+	cmd.Dir = tmp_dir
 	cmd.Run()	
 
 	// Resize the image to fit 256x256 tile. This is required for Terria but probably not for scripts
 	cmd = exec.Command("/usr/bin/convert", subset_tile, "-resize", "256x256!", subset_tile)
-	cmd.Dir = tmp_tile_dir
+	cmd.Dir = tmp_dir
 	cmd.Run()
-
 	return subset_tile
+}
+ 
+func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string, z float64) string {
+	x := params.BBox[0]
+	y := params.BBox[1]
+	tmp_dir := "/tmp"
+	tile_file := ""
+	if (this_zoom_level == 20) {
+		t1 := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", x,y,x+z,y+z) 
+		t1 = tile_dir + "/" + t1 + ".png"
+		t2 := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", x+z,y,x+2*z,y+z) 
+		t2 = tile_dir + "/" + t2 + ".png"
+		t1_t2_png := "t1_t2.png"
+		cmd := exec.Command("/usr/bin/convert", t1, t2, "+append", t1_t2_png)
+		cmd.Dir = tmp_dir
+		cmd.Run()	
+		t3 := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", x,y+z,x+z,y+2*z) 
+		t3 = tile_dir + "/" + t3 + ".png"
+		t4 := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", x+z,y+z,x+2*z,y+2*z) 
+		t4 = tile_dir + "/" + t4 + ".png"
+		t3_t4_png := tmp_dir + "t3_t4.png"
+		cmd = exec.Command("/usr/bin/convert", t3, t4, "+append", t3_t4_png)
+		cmd.Dir = tmp_dir
+		cmd.Run()	
+		tile_file = tmp_dir + "/t1_t2_t3_t4.png"
+		cmd = exec.Command("/usr/bin/convert", t3_t4_png, t1_t2_png, "-append", tile_file)
+		cmd.Dir = tmp_dir
+		cmd.Run()	
+		cmd = exec.Command("/usr/bin/convert", tile_file, "-resize", "256x256!", tile_file)
+		cmd.Dir = tmp_dir
+		cmd.Run()
+	}
+	return tile_file 
 }
 func GetEnclosingTile(params utils.WMSParams) {
 //http://130.56.242.15/ows/ap?time=2013-03-19T00:00:00.000Z&srs=EPSG:3857&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=15184674.291019972,-3130860.6785608195,15223810.049501982,-3091724.9200788103&width=256&height=256
@@ -269,7 +301,6 @@ func GetEnclosingTile(params utils.WMSParams) {
 			break
 		}
 	}
-//	return params	
 }
 func CreateTile_0(params utils.WMSParams, tile_dir string) string{
 	var xyXY [25012]float64
@@ -373,7 +404,7 @@ cmd.Run()
 	return ""
 }
 func ReadPNG(tile_file string, w http.ResponseWriter) {
-P(tile_file)
+//P(tile_file)
     file, err := os.Open(tile_file)
     if err != nil {
 		tile_file := *tile_basedir + "blank.png"
@@ -467,15 +498,11 @@ func list (reqURL string) { // AVS
     	st = strings.Replace(st,"%3A", ":", -1)
     	st = strings.Replace(st,"%2F", "/", -1)
     	st = strings.Replace(st,"%2C", ",", -1)
-//fmt.Println(st)	
     }
 
 }
 func zoom_level(params utils.WMSParams) int{
 //AVS: Function added to determine the zoom level	
-	var longdiff float64
-	longdiff = params.BBox[2] - params.BBox[0]
-	var i = fmt.Sprintf("%.6f", longdiff) 
 	zoom_levels := map[string]int{
 		"19567.879241": 5,
 		"39135.758482": 10,
@@ -489,7 +516,10 @@ func zoom_level(params utils.WMSParams) int{
 		"10018754.171395": 3000,
 		"20037508.342789": 5000,
 	}
-return zoom_levels[i]	
+	var longdiff float64
+	longdiff = params.BBox[2] - params.BBox[0]
+	var i = fmt.Sprintf("%.6f", longdiff) 
+	return zoom_levels[i]	
 }
 func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, reqURL string, w http.ResponseWriter, r *http.Request) {
 //fmt.Printf("reqURL: %+v\n", reqURL)
@@ -672,6 +702,11 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			date := strings.Split(ts, " ")
 //			tile_dir := *tile_basedir + layer + "/" + date[0] + "T" + date[1] + ".000Z" // For Himawari8
 			tile_dir := *tile_basedir + layer + "/" + date[0] // For DEA
+			tile_file := *tile_basedir + "blank.png" // Initialise it with blank instead of ""
+/*
+If the coords come in as EPSG:4326, as in the case of Scripts, then convert them into EPSG:3857.
+It is done in this way, as Terria always sends in 3857.
+*/
 			if (srs == "EPSG:4326") {
 				bbox3857 := Convert_bbox_into_3857(params, 1)
 				P(bbox3857)
@@ -686,22 +721,14 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			if (srs == "EPSG:3857") {
 				bbox4326 := Convert_bbox_into_4326(params, 1)
 			}
-*/			
-			ori_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
-			GetEnclosingTile(params)
-			new_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
-			s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
-			tile_file := tile_dir + "/" + s + ".png"
-			if (ori_params == new_params) {
-			} else {
-				tile_file = CreateSubsetTile(ori_params,new_params,tile_dir,tile_file)
-			}
-				
-			/*
-			AVS: The zoom levels 10km to 5000km alone are cached.
-				- If the zoom level is below 10km, skip the tile_dir and go to GSKY
-				- It is determined by looking at the diff between the minX and maxX values (see below)
-			*/
+*/	
+/*
+If the bbox matches with "ANY" zoom level lower than 10km, then just construct the tile from the 10km tiles.
+Else, if the bbox is a random one, then we have to get a subset from either a single 10km tile
+or one that has been reconstructed to enclose the requested tile.
+*/
+//fmt.Printf("1. %.2f_%.2f_%.2f_%.2f\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+			this_zoom_level := zoom_level(params)
 			zoom_diffs := map[int]float64{
 				5: 19567.879241,
 				10: 39135.758482,
@@ -716,6 +743,26 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 				3000: 10018754.171395,
 				5000: 20037508.342789,
 			}
+			if(this_zoom_level > 10) {
+				z := zoom_diffs[10]
+				tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z)
+			} else {
+				ori_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+				GetEnclosingTile(params)
+				new_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+				s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+				tile_file = tile_dir + "/" + s + ".png"
+				if (ori_params == new_params) {
+				} else {
+					tile_file = CreateSubsetTile(ori_params,new_params,tile_dir,tile_file)
+				}
+			}
+				
+			/*
+			AVS: The zoom levels 10km to 5000km alone are cached.
+				- If the zoom level is below 10km, skip the tile_dir and go to GSKY
+				- It is determined by looking at the diff between the minX and maxX values (see below)
+			*/
 			var longdiff float64
 			longdiff = params.BBox[2] - params.BBox[0]
 			// AVS: For most time slices for DEA the lowest zoom level to see the data is 50km.
