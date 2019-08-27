@@ -236,15 +236,13 @@ func CreateSubsetTile(ori_params string, new_params string, tile_dir string, til
 func CreateAnyZoomTile(n int, x float64, y float64, tile_dir string, z float64) string{
 	tmp_dir := "/tmp"
 	tile_file := tmp_dir + "/t1_t2_t3_t4.png"
-	cells := map[int]map[int]string{
-        0 : map[int]string{
-        },
-        1 : map[int]string{
-        },
-        2 : map[int]string{
-        },
-    }
-    var rows [65536] string
+
+	cells := make([][]string, 256)       // initialize a slice of dy slices
+	for i:=0;i<256;i++ {
+		cells[i] = make([]string, 256)  // initialize a slice of dx unit8 in each of dy slices
+	}
+
+    var rows [256] string
     var n_rows int
     t := []int{0, n}
    	y1 := y
@@ -256,11 +254,10 @@ func CreateAnyZoomTile(n int, x float64, y float64, tile_dir string, z float64) 
 		}
 		y1 += z
     }
-    for _, ii := range t {
-		r2_png := fmt.Sprintf("/tmp/r2_%v.png",ii)
+    for ii := 0; ii <= n; ii++ {
 		r1_png := cells[ii][0]
-		for _, jj := range t {
-			j1 := jj + 1
+		r2_png := fmt.Sprintf("/tmp/r2_%v.png",ii)
+	    for j1 := 1; j1 <= n; j1++ {
 			cmd := exec.Command("/usr/bin/convert", r1_png, cells[ii][j1], "+append", r2_png)
 			cmd.Dir = tmp_dir
 			cmd.Run()	
@@ -361,6 +358,9 @@ func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string
 	tile_file := ""
 	if (this_zoom_level == 20) {
 		tile_file = CreateAnyZoomTile(1,x,y, tile_dir, z)
+	}
+	if (this_zoom_level == 50) {
+		tile_file = CreateAnyZoomTile(3,x,y, tile_dir, z)
 	}
 /*	
 	if (this_zoom_level == 20) {
