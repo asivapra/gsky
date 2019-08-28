@@ -69,6 +69,7 @@ func (dp *TilePipeline) Process(geoReq *GeoTileRequest, verbose bool) chan []uti
 	go m.Run(polyLimiter, geoReq.BandExpr, verbose)
 //fmt.Println("------------------")
 //fmt.Println(m.Out)
+//fmt.Printf("AVS_3a\n")
 	return m.Out
 
 }
