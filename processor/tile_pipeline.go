@@ -49,7 +49,7 @@ func InitTilePipeline(ctx context.Context, masAddr string, rpcAddr []string, max
 func (dp *TilePipeline) Process(geoReq *GeoTileRequest, verbose bool) chan []utils.Raster {
 	grpcTiler := NewRasterGRPC(dp.Context, dp.RPCAddress, dp.MaxGrpcRecvMsgSize, dp.PolygonShardConcLimit, dp.MaxGrpcBufferSize, dp.Error)
 	i := NewTileIndexer(dp.Context, dp.MASAddress, dp.Error)
-fmt.Printf("\n--------geoReq: %v\n", geoReq)
+//fmt.Printf("\n--------geoReq: %v\n", geoReq)
 	go func() {
 		i.In <- geoReq
 		close(i.In)
