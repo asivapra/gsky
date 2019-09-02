@@ -235,14 +235,17 @@ func CreateSubsetTile(ori_params string, new_params string, tile_dir string, til
 }
  
 func IsItBlank(tile_file string) string {
-    file, err := os.Open(tile_file)
-    if err != nil {
+	if _, err := os.Stat(tile_file); err != nil {
 		tile_file = *tile_basedir + "blank.png"
-    }
-    defer file.Close()
-    return tile_file
+	}
+//    file, err := os.Open(tile_file)
+//    if err != nil {
+//		tile_file = *tile_basedir + "blank.png"
+//    }
+//    defer file.Close()
+    return tile_file 
 }
-func MakeRows(n int, i int,r1_png string,tmp_png string, tmp_dir string) {
+func MakeRowsReturn(c chan string, n int, i int,r1_png string,tmp_png string, tmp_dir string, cells [][]string) string{
 	for j := 1; j < n; j++ {
 		next_png := IsItBlank(cells[i][j])
 		cmd := exec.Command("/usr/bin/convert", r1_png, next_png, "+append", tmp_png)
@@ -250,18 +253,39 @@ func MakeRows(n int, i int,r1_png string,tmp_png string, tmp_dir string) {
 		cmd.Run()	
 		r1_png = tmp_png
 	}
-	rows[i] = tmp_png
-//	n_rows += 1
+	return tmp_png
 }
-var cells [][]string
-var rows [256] string
-func CreateAnyZoomTile(n int, x float64, y float64, tile_dir string, z float64) string{
-	tmp_dir := "/tmp"
-	tile_file := tmp_dir + "/t1_t2_t3_t4.png"
+func MakeRows(c chan string, n int, i int,r1_png string,tmp_png string, tmp_dir string, cells [][]string) {
+	for j := 1; j < n; j++ {
+		next_png := IsItBlank(cells[i][j])
+		cmd := exec.Command("/usr/bin/convert", r1_png, next_png, "+append", tmp_png)
+		cmd.Dir = tmp_dir
+		cmd.Run()	
+		r1_png = tmp_png
+	}
+	tmp_png = fmt.Sprintf("%v|%v",i,tmp_png)
+	c <- tmp_png
+}
+func AppendRows(c chan string, c1 chan string, i int) {
+	row := <- c
+//	row = fmt.Sprintf("%v|%v",i,row)
+//P(row)
+	c1 <- row
+}
+func CreateAnyZoomTile(this_zoom_level int, n int, x float64, y float64, tile_dir string, z float64, Date string, BBox string, tile_file string) string{
 
-	cells = make([][]string, 256)       // initialize a slice of dy slices
-	for i:=0;i<256;i++ {
-		cells[i] = make([]string, 256)  // initialize a slice of dx unit8 in each of dy slices
+now := time.Now().UTC()
+	tmp_dir := "/tmp"
+//P("HERE")
+var cells [][]string
+var rows [4] string
+//	tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z,Date, BBox)
+//	tile_file := fmt.Sprintf("/tmp/tile_%v_%v.png",Date,BBox)
+//Info.Printf("tile_file = %v", tile_file)			
+
+	cells = make([][]string, 16)       // initialize a slice 
+	for i:=0;i<16;i++ {
+		cells[i] = make([]string, 256)  // initialize a slice 
 	}
    	y1 := y
     for i := 0; i < n; i++ {
@@ -272,79 +296,121 @@ func CreateAnyZoomTile(n int, x float64, y float64, tile_dir string, z float64) 
 		}
 		y1 += z
     }
-    // Delete the previous *.pngs
-    for i := 0; i < n; i++ {
-		old_png := fmt.Sprintf("/tmp/tmp_%v.png",i)
-		cmd := exec.Command("sh", "-c", "rm ", old_png)
-		cmd.Dir = tmp_dir
-		cmd.Run()
-    }
-    for i := 0; i < n; i++ {
+	// Concatenate tiles in every row and store as an array
+	// The 'func MakeRows' will run in parallel and the call will return before it finishes the concatenation.
+	var c chan string = make(chan string)
+//	var c1 chan string = make(chan string)
+	for i := 0; i < n; i++ {
 		r1_png := IsItBlank(cells[i][0])
-		tmp_png := fmt.Sprintf("/tmp/tmp_%v.png",i)
-		go MakeRows(n,i,r1_png,tmp_png,tmp_dir)
+		s := strings.Split(cells[i][0], "/")
+		bbox := s[len(s)-1]
+		tmp_png := fmt.Sprintf("/tmp/tmp_%v_%v_%v",this_zoom_level,Date,bbox)
+//		if _, err := os.Stat(tmp_png); err != nil {
+//			rows[i] = MakeRowsReturn(c,n,i,r1_png,tmp_png,tmp_dir,cells)
+//P(rows[i])
+			go MakeRows(c,n,i,r1_png,tmp_png,tmp_dir,cells)
+//			row := <- c
+//			go AppendRows(c,c1,i)
+//			rows[i] = <- c
+//P(rows[i])
+//			s = strings.Split(row,"|")
+//P(s[0])
+//P(s[1])
+//			rows[i] = <- c
+//		}
     }
-// wait until no 'convert' is running
-//    time.Sleep(5 * time.Second) // Allow time for convert to start
+	for i := 0; i < n; i++ {
+		row := <- c
+		s := strings.Split(row,"|")
+		i, _ := strconv.Atoi(s[0])
+		rows[i] = s[1]
+	}
+    // Ensure that all 'MakeRows' have finished. Wait until no 'convert' is running
     nn := 0
     for nn < 1000 {
     	ps, _ := exec.Command("sh","-c","ps -ef | grep convert | grep -v grep").Output()
+//Pi(len(ps))
     	if (len(ps)) == 0 {
     		break
     	} else {
-    		time.Sleep(1 * time.Second)
+    		time.Sleep(100 * time.Millisecond)
     		nn += 1
     	}
     }
   	pngs := ""
     for i := n-1; i >= 0; i-- {
-    	this_png := fmt.Sprintf("/tmp/tmp_%v.png ", i)
-    	pngs += this_png
+    	pngs += rows[i] + " "
     }
+/*  	
+    for i := n-1; i >= 0; i-- {
+P(rows[i])
+//		s := strings.Split(cells[i][0], "/")
+		s := strings.Split(rows[i], "/")
+		bbox := s[len(s)-1]
+//P(bbox)
+		s = strings.Split(bbox, ".png")
+		bbox = s[0]
+		s = strings.Split(bbox, "_")
+		x := s[0] // /tmp/tmp_300_2013-04-04_12523442.71
+//		y := s[4] // /tmp/tmp_300_2013-04-04_12523442.71
+		s = strings.Split(BBox, "_")
+		X := s[0] // 12523442.71_-3757032.81_13775786.99_-2504688.54
+		if (x != X) {
+			fmt.Printf("Error: x = %v is not equal to X = %v\n", x, X)
+		}
+		this_png := fmt.Sprintf("/tmp/tmp_%v_%v_%v.png",this_zoom_level,Date,bbox)
+//    	this_png := fmt.Sprintf("/tmp/tmp_%v.png ", i)
+    	pngs += this_png + " "
+    }
+*/
     last := len(pngs) - 1 
     pngs = pngs[:last]
     
-	tmp_png := fmt.Sprintf("/tmp/tmp.png")
-	cmdString := "/usr/bin/convert " + pngs + " -append " + tmp_png
+//	full_size_png := fmt.Sprintf("/tmp/full_size_%v_%v_%v.png",this_zoom_level,Date,BBox)
+	cmdString := "/usr/bin/convert " + pngs + " -append " + tile_file
+//P(tile_file)
+//P(cmdString)
 	exec.Command("sh","-c", cmdString).Output()
-	cmd := exec.Command("/usr/bin/convert", tmp_png, "-resize", "256x256!", tile_file)
+//	tile_file := fmt.Sprintf("/tmp/tile_%v_%v.png",Date,BBox)
+	cmd := exec.Command("/usr/bin/convert", tile_file, "-resize", "256x256!", tile_file)
 	cmd.Dir = tmp_dir
 	cmd.Run()
+//Info.Printf("tile_file = %v", tile_file)			
+fmt.Println("Elapsed time: ", time.Since(now), Date, tile_file)
 	return tile_file
 }
 
-func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string, z float64) string {
-fmt.Println("Building tiles for zoom level: ", this_zoom_level) 
+func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string, z float64, Date string, BBox string, tile_file string) string {
+//fmt.Println("Building tiles for zoom level: ", this_zoom_level, Date) 
 	x := params.BBox[0]
 	y := params.BBox[1]
-	tile_file := ""
 	if (this_zoom_level == 20) {
-		tile_file = CreateAnyZoomTile(2,x,y, tile_dir, z) // 2 = number of 2x2 rows of 10km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,2,x,y, tile_dir, z, Date, BBox, tile_file) // 2 = number of 2x2 rows of 10km;
 	}
 	if (this_zoom_level == 50) {
-		tile_file = CreateAnyZoomTile(4,x,y, tile_dir, z) // 4 = number of 4x4 rows of 10km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,4,x,y, tile_dir, z, Date, BBox, tile_file) // 4 = number of 4x4 rows of 10km;
 	}
 /*	
 	if (this_zoom_level == 100) {
-		tile_file = CreateAnyZoomTile(8,x,y, tile_dir, z) // 8 = number of 8x8 rows;
+		tile_file = CreateAnyZoomTile(this_zoom_level,8,x,y, tile_dir, z, Date, BBox, tile_file) // 8 = number of 8x8 rows;
 	}
 */
 	if (this_zoom_level == 200) {
-		tile_file = CreateAnyZoomTile(2,x,y, tile_dir, z) // 2 = number of 2x2 rows of 100km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,2,x,y, tile_dir, z, Date, BBox, tile_file) // 2 = number of 2x2 rows of 100km;
 	}
 	if (this_zoom_level == 300) {
-		tile_file = CreateAnyZoomTile(4,x,y, tile_dir, z) // 4 = number of 4x4 rows of 100km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,4,x,y, tile_dir, z, Date, BBox, tile_file) // 4 = number of 4x4 rows of 100km;
 	}
 /*	
 	if (this_zoom_level == 500) {
-		tile_file = CreateAnyZoomTile(64,x,y, tile_dir, z) // 4 = number of 4x4 rows;
+		tile_file = CreateAnyZoomTile(this_zoom_level,64,x,y, tile_dir, z, Date, BBox, tile_file) // 4 = number of 4x4 rows;
 	}
 */	
 	if (this_zoom_level == 1000) {
-		tile_file = CreateAnyZoomTile(2,x,y, tile_dir, z) // 2 = number of 2x2 rows of 500km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,2,x,y, tile_dir, z, Date, BBox, tile_file) // 2 = number of 2x2 rows of 500km;
 	}
 	if (this_zoom_level == 3000) {
-		tile_file = CreateAnyZoomTile(4,x,y, tile_dir, z) // 4 = number of 4x4 rows of 500km;
+		tile_file = CreateAnyZoomTile(this_zoom_level,4,x,y, tile_dir, z, Date, BBox, tile_file) // 4 = number of 4x4 rows of 500km;
 	}
 	return tile_file 
 }
@@ -385,9 +451,8 @@ func ReadPNG(tile_file string, w http.ResponseWriter) {
 		ReadPNG(tile_file, w)
     }
     defer file.Close()
-
-  out, err := ioutil.ReadAll(file)
-  w.Write(out)
+    out, _ := ioutil.ReadAll(file)
+    w.Write(out)
 }
 func WriteOut(outfile string, data string) {
 	f, err := os.OpenFile(outfile, os.O_APPEND|os.O_WRONLY, 0600)
@@ -496,8 +561,17 @@ func zoom_level(params utils.WMSParams) int{
 	return zoom_levels[i]	
 }
 func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, reqURL string, w http.ResponseWriter, r *http.Request) {
-//fmt.Printf("reqURL: %+v\n", reqURL)
-//Info.Printf("params.Origin: %+v\n", *params.Version)
+//fmt.Printf("reqURL: http://130.56.242.15%+v\n", reqURL)
+//Info.Printf("params.Origin: %+v\n", *params.Time)
+	// AVS: Get the date 
+//    s := strings.Split(fmt.Sprintf("%v",*params.Time), " ")
+//	Date := s[0]
+//if(Date != "2013-03-19") {
+//	tile_file := *tile_basedir + "blank.png"
+//	ReadPNG(tile_file, w)
+//	return
+//}
+//	BBox := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
 	if params.Request == nil {
 		http.Error(w, "Malformed WMS, a Request field needs to be specified", 400)
 		return
@@ -671,6 +745,15 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			reqRes = reqRes * 100000
 		}
 		layer := query["layers"][0]
+		BBox := ""
+		Date := ""
+if _, ok := query["time"]; ok {
+	s := strings.Split(fmt.Sprintf("%v",*params.Time), " ")
+	Date = s[0]
+	BBox = fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+//P(BBox)
+}
+
 		var tile_file string
 		if(!*create_tile) {
 //fmt.Printf("ORI-0: %.2f_%.2f_%.2f_%.2f\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
@@ -719,7 +802,8 @@ or one that has been reconstructed to enclose the requested tile.
 				3000: 10018754.171395,
 				5000: 20037508.342789,
 			}
-now := time.Now().UTC()
+//now := time.Now().UTC()
+//Pi(this_zoom_level)
 			*build_tiles = false
 			z := 0.00
 			if (this_zoom_level == 20 || this_zoom_level == 50) {
@@ -734,9 +818,18 @@ now := time.Now().UTC()
 				*build_tiles = true
 				z = zoom_diffs[500]
 			}
+			tile_file_exists := false
 			if (*build_tiles) {
+				tile_file = fmt.Sprintf("/tmp/tile_%v_%v_%v.png",this_zoom_level,Date,BBox)
+//P(tile_file)
+				if _, err := os.Stat(tile_file); err == nil {
+//					tile_file_exists = true
+				}
+
 				if(this_zoom_level > 10) {
-					tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z)
+					if (!tile_file_exists) {
+						tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z,Date,BBox,tile_file)
+					}
 				} else {
 					ori_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
 					GetEnclosingTile(params)
@@ -770,7 +863,7 @@ now := time.Now().UTC()
 				}
 				if _, err := os.Stat(tile_file); err == nil {
 					ReadPNG(tile_file, w)
-fmt.Println("8. Elapsed time: ", time.Since(now))
+//fmt.Println("Elapsed time: ", time.Since(now))
 					return
 				} else {
 					tile_file := *tile_basedir + "blank.png"
