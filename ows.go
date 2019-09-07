@@ -59,9 +59,10 @@ var (
 	dap         	= flag.Bool("dap", true, "For DAP-GSKY Service.")
 	create_tile     = flag.Bool("create_tile", false, "For Google Earth Web Service.")
 	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/DEA_Tiles/", "Server data directory.")
+	tile_cachedir  	= flag.String("tile_cachedir", "/local/avs900/Australia/DEA_Tiles/Tmp", "Server data directory.")
 //	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/Himawari8/", "Server data directory.")
 	use_cached_tiles    = flag.Bool("tc", true, "Tiles for this time slice are cached.")
-	build_tiles    	= flag.Bool("bt", true, "Tiles are built on the fly.")
+	build_tiles    	= flag.Bool("bt", false, "Tiles are built on the fly.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -220,68 +221,56 @@ func CreateSubsetTile(ori_params string, new_params string, tile_dir string, til
 	// Crop the subset tile
 	crop := fmt.Sprintf("%vx%v+%v+%v",w,h,x,y)
 
-	tmp_dir := "/tmp"
+//	tmp_dir := "/tmp"
 	s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", xn, yn, Xn, Yn) 
-	subset_tile := tmp_dir + "/" + s + ".png"
+	subset_tile := *tile_cachedir + "/" + s + ".png"
 	cmd := exec.Command("/usr/bin/convert", tile_file, "-crop", crop, "+repage", subset_tile)
-	cmd.Dir = tmp_dir
+	cmd.Dir = *tile_cachedir
 	cmd.Run()	
 
 	// Resize the image to fit 256x256 tile. This is required for Terria but probably not for scripts
 	cmd = exec.Command("/usr/bin/convert", subset_tile, "-resize", "256x256!", subset_tile)
-	cmd.Dir = tmp_dir
+	cmd.Dir = *tile_cachedir
 	cmd.Run()
 	return subset_tile
 }
  
 func IsItBlank(tile_file string) string {
-	if _, err := os.Stat(tile_file); err != nil {
+	if fi, err := os.Stat(tile_file); err != nil {
 		tile_file = *tile_basedir + "blank.png"
+	} else {
+		fz := fi.Size()
+		// Change to blank.png if the tile is "Data Unavailable"
+		if (fz == 2232) {
+			tile_file = *tile_basedir + "blank.png"
+		}
 	}
-//    file, err := os.Open(tile_file)
-//    if err != nil {
-//		tile_file = *tile_basedir + "blank.png"
-//    }
-//    defer file.Close()
     return tile_file 
 }
-func MakeRowsReturn(c chan string, n int, i int,r1_png string,tmp_png string, tmp_dir string, cells [][]string) string{
+func MakeRowsReturn(c chan string, n int, i int,r1_png string,tmp_png string, tile_cachedir string, cells [][]string) string{
 	for j := 1; j < n; j++ {
 		next_png := IsItBlank(cells[i][j])
 		cmd := exec.Command("/usr/bin/convert", r1_png, next_png, "+append", tmp_png)
-		cmd.Dir = tmp_dir
+		cmd.Dir = tile_cachedir
 		cmd.Run()	
 		r1_png = tmp_png
 	}
 	return tmp_png
 }
-func MakeRows(c chan string, n int, i int,r1_png string,tmp_png string, tmp_dir string, cells [][]string) {
+func MakeRows(c chan string, n int, i int,r1_png string,tmp_png string, tile_cachedir string, cells [][]string) {
 	for j := 1; j < n; j++ {
 		next_png := IsItBlank(cells[i][j])
 		cmd := exec.Command("/usr/bin/convert", r1_png, next_png, "+append", tmp_png)
-		cmd.Dir = tmp_dir
+		cmd.Dir = tile_cachedir
 		cmd.Run()	
 		r1_png = tmp_png
 	}
 	tmp_png = fmt.Sprintf("%v|%v",i,tmp_png)
 	c <- tmp_png
 }
-func AppendRows(c chan string, c1 chan string, i int) {
-	row := <- c
-//	row = fmt.Sprintf("%v|%v",i,row)
-//P(row)
-	c1 <- row
-}
 func CreateAnyZoomTile(this_zoom_level int, n int, x float64, y float64, tile_dir string, z float64, Date string, BBox string, tile_file string) string{
-
-now := time.Now().UTC()
-	tmp_dir := "/tmp"
-//P("HERE")
-var cells [][]string
-var rows [4] string
-//	tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z,Date, BBox)
-//	tile_file := fmt.Sprintf("/tmp/tile_%v_%v.png",Date,BBox)
-//Info.Printf("tile_file = %v", tile_file)			
+	var cells [][]string
+	var rows [4] string
 
 	cells = make([][]string, 16)       // initialize a slice 
 	for i:=0;i<16;i++ {
@@ -299,25 +288,12 @@ var rows [4] string
 	// Concatenate tiles in every row and store as an array
 	// The 'func MakeRows' will run in parallel and the call will return before it finishes the concatenation.
 	var c chan string = make(chan string)
-//	var c1 chan string = make(chan string)
 	for i := 0; i < n; i++ {
 		r1_png := IsItBlank(cells[i][0])
 		s := strings.Split(cells[i][0], "/")
 		bbox := s[len(s)-1]
-		tmp_png := fmt.Sprintf("/tmp/tmp_%v_%v_%v",this_zoom_level,Date,bbox)
-//		if _, err := os.Stat(tmp_png); err != nil {
-//			rows[i] = MakeRowsReturn(c,n,i,r1_png,tmp_png,tmp_dir,cells)
-//P(rows[i])
-			go MakeRows(c,n,i,r1_png,tmp_png,tmp_dir,cells)
-//			row := <- c
-//			go AppendRows(c,c1,i)
-//			rows[i] = <- c
-//P(rows[i])
-//			s = strings.Split(row,"|")
-//P(s[0])
-//P(s[1])
-//			rows[i] = <- c
-//		}
+		tmp_png := fmt.Sprintf("%v/tmp_%v_%v_%v",*tile_cachedir,this_zoom_level,Date,bbox)
+			go MakeRows(c,n,i,r1_png,tmp_png,*tile_cachedir,cells)
     }
 	for i := 0; i < n; i++ {
 		row := <- c
@@ -325,11 +301,11 @@ var rows [4] string
 		i, _ := strconv.Atoi(s[0])
 		rows[i] = s[1]
 	}
+/*	
     // Ensure that all 'MakeRows' have finished. Wait until no 'convert' is running
     nn := 0
     for nn < 1000 {
     	ps, _ := exec.Command("sh","-c","ps -ef | grep convert | grep -v grep").Output()
-//Pi(len(ps))
     	if (len(ps)) == 0 {
     		break
     	} else {
@@ -337,51 +313,23 @@ var rows [4] string
     		nn += 1
     	}
     }
+*/
   	pngs := ""
     for i := n-1; i >= 0; i-- {
     	pngs += rows[i] + " "
     }
-/*  	
-    for i := n-1; i >= 0; i-- {
-P(rows[i])
-//		s := strings.Split(cells[i][0], "/")
-		s := strings.Split(rows[i], "/")
-		bbox := s[len(s)-1]
-//P(bbox)
-		s = strings.Split(bbox, ".png")
-		bbox = s[0]
-		s = strings.Split(bbox, "_")
-		x := s[0] // /tmp/tmp_300_2013-04-04_12523442.71
-//		y := s[4] // /tmp/tmp_300_2013-04-04_12523442.71
-		s = strings.Split(BBox, "_")
-		X := s[0] // 12523442.71_-3757032.81_13775786.99_-2504688.54
-		if (x != X) {
-			fmt.Printf("Error: x = %v is not equal to X = %v\n", x, X)
-		}
-		this_png := fmt.Sprintf("/tmp/tmp_%v_%v_%v.png",this_zoom_level,Date,bbox)
-//    	this_png := fmt.Sprintf("/tmp/tmp_%v.png ", i)
-    	pngs += this_png + " "
-    }
-*/
     last := len(pngs) - 1 
     pngs = pngs[:last]
     
-//	full_size_png := fmt.Sprintf("/tmp/full_size_%v_%v_%v.png",this_zoom_level,Date,BBox)
 	cmdString := "/usr/bin/convert " + pngs + " -append " + tile_file
-//P(tile_file)
-//P(cmdString)
 	exec.Command("sh","-c", cmdString).Output()
-//	tile_file := fmt.Sprintf("/tmp/tile_%v_%v.png",Date,BBox)
 	cmd := exec.Command("/usr/bin/convert", tile_file, "-resize", "256x256!", tile_file)
-	cmd.Dir = tmp_dir
+	cmd.Dir = *tile_cachedir
 	cmd.Run()
-//Info.Printf("tile_file = %v", tile_file)			
-fmt.Println("Elapsed time: ", time.Since(now), Date, tile_file)
 	return tile_file
 }
 
 func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string, z float64, Date string, BBox string, tile_file string) string {
-//fmt.Println("Building tiles for zoom level: ", this_zoom_level, Date) 
 	x := params.BBox[0]
 	y := params.BBox[1]
 	if (this_zoom_level == 20) {
@@ -703,6 +651,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 		if styleIdx >= 0 {
 			styleLayer = &conf.Layers[idx].Styles[styleIdx]
 		}
+//fmt.Println(conf.Layers[idx].ZoomLimit,conf.Layers[idx].WmsPolygonSegments,conf.Layers[idx].GrpcWmsConcPerNode)		
 		geoReq := &proc.GeoTileRequest{ConfigPayLoad: proc.ConfigPayLoad{NameSpaces: styleLayer.RGBExpressions.VarList,
 			BandExpr: styleLayer.RGBExpressions,
 			Mask:     styleLayer.Mask,
@@ -747,46 +696,43 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 		layer := query["layers"][0]
 		BBox := ""
 		Date := ""
-if _, ok := query["time"]; ok {
-	s := strings.Split(fmt.Sprintf("%v",*params.Time), " ")
-	Date = s[0]
-	BBox = fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
-//P(BBox)
-}
+		if _, ok := query["time"]; ok {
+			s := strings.Split(fmt.Sprintf("%v",*params.Time), " ")
+			Date = s[0]
+			BBox = fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+		}
 
 		var tile_file string
 		if(!*create_tile) {
-//fmt.Printf("ORI-0: %.2f_%.2f_%.2f_%.2f\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+//now := time.Now().UTC()
 			ts := fmt.Sprintf("%v",*params.Time) 
 			date := strings.Split(ts, " ")
-//			tile_dir := *tile_basedir + layer + "/" + date[0] + "T" + date[1] + ".000Z" // For Himawari8
 			tile_dir := *tile_basedir + layer + "/" + date[0] // For DEA
 			tile_file = *tile_basedir + "blank.png" // Initialise it with blank instead of ""
-/*
-If the coords come in as EPSG:4326, as in the case of Scripts, then convert them into EPSG:3857.
-It is done in this way, as Terria always sends in 3857.
-*/
+			/*
+			If the coords come in as EPSG:4326, as in the case of Scripts, then convert them into EPSG:3857.
+			The calculations are done with EPSG:3857 coordinates, as Terria always sends in 3857.
+			*/
 			if (srs == "EPSG:4326") {
 				bbox3857 := Convert_bbox_into_3857(params, 1)
-//P(bbox3857)
-				
 				s0 := strings.Split(bbox3857, ",")
 				params.BBox[0], _ = strconv.ParseFloat(s0[0], 64)
 				params.BBox[1], _ = strconv.ParseFloat(s0[1], 64)
 				params.BBox[2], _ = strconv.ParseFloat(s0[2], 64)
 				params.BBox[3], _ = strconv.ParseFloat(s0[3], 64)
 			}
-/*			
-			if (srs == "EPSG:3857") {
-				bbox4326 := Convert_bbox_into_4326(params, 1)
-			}
-*/	
-/*
-If the bbox matches with "ANY" zoom level lower than 10km, then just construct the tile from the 10km tiles.
-Else, if the bbox is a random one, then we have to get a subset from either a single 10km tile
-or one that has been reconstructed to enclose the requested tile.
-*/
-//fmt.Printf("1. %.2f_%.2f_%.2f_%.2f\n", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
+			
+			// This is not necessary, but is useful to convert the BBOx for viewing in BBOX Finder
+//			if (srs == "EPSG:3857") {
+//				bbox4326 := Convert_bbox_into_4326(params, 1)
+//				P(bbox4326)
+//			}
+	
+			/*
+			If the bbox matches with "ANY" zoom level lower than cached levels (10, 100, 500), then just construct the tile from the cached tiles.
+			Else, if the bbox is a random one, then we have to get a subset from either a single tile
+			or one that has been reconstructed to enclose the requested tile.
+			*/
 			this_zoom_level := zoom_level(params)
 			zoom_diffs := map[int]float64{
 				5: 19567.879241,
@@ -802,35 +748,43 @@ or one that has been reconstructed to enclose the requested tile.
 				3000: 10018754.171395,
 				5000: 20037508.342789,
 			}
-//now := time.Now().UTC()
-//Pi(this_zoom_level)
-			*build_tiles = false
+			// If the zoom level is not cached, then build the tile from the nearest cached level.
 			z := 0.00
-			if (this_zoom_level == 20 || this_zoom_level == 50) {
-				*build_tiles = true
-				z = zoom_diffs[10]
-			}
-			if (this_zoom_level == 200 || this_zoom_level == 300) {
-				*build_tiles = true
-				z = zoom_diffs[100]
-			}
-			if (this_zoom_level == 1000 || this_zoom_level == 3000) {
-				*build_tiles = true
-				z = zoom_diffs[500]
+			if (*build_tiles == true) {
+				*build_tiles = false // This means the build_tiles are determined from the zoom levels. No provision to disable it.
+				if (this_zoom_level == 20 || this_zoom_level == 50) {
+					*build_tiles = true
+					z = zoom_diffs[10]
+				}
+				if (this_zoom_level == 200 || this_zoom_level == 300) {
+					*build_tiles = true
+					z = zoom_diffs[100]
+				}
+				if (this_zoom_level == 1000 || this_zoom_level == 3000) {
+					*build_tiles = true
+					z = zoom_diffs[500]
+				}
 			}
 			tile_file_exists := false
+			if (srs == "EPSG:4326") {
+				*build_tiles = true
+			}
+			// Lower zoom level tiles are built from cached level tiles
 			if (*build_tiles) {
-				tile_file = fmt.Sprintf("/tmp/tile_%v_%v_%v.png",this_zoom_level,Date,BBox)
-//P(tile_file)
-				if _, err := os.Stat(tile_file); err == nil {
-//					tile_file_exists = true
-				}
+				tile_file = fmt.Sprintf("%v/tile_%v_%v_%v.png",*tile_cachedir,this_zoom_level,Date,BBox)
 
+				// Cache the tiles for subsequent displays. This cache will be emptied at midnight
+				if _, err := os.Stat(tile_file); err == nil {
+					tile_file_exists = true
+				}
+				
+				// The first part below is to crop the tiles for non-standard BBOx as in scripts
 				if(this_zoom_level > 10) {
 					if (!tile_file_exists) {
 						tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z,Date,BBox,tile_file)
 					}
 				} else {
+					// This is to construct tiles from building blocks. Used for Terria.
 					ori_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
 					GetEnclosingTile(params)
 					new_params := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
@@ -851,8 +805,10 @@ or one that has been reconstructed to enclose the requested tile.
 			var longdiff float64
 			longdiff = params.BBox[2] - params.BBox[0]
 			// AVS: For most time slices for DEA the lowest zoom level to see the data is 50km.
-			// Hence, at 50 km or below the data is fetched directly from MAS
+			// Hence, at 10 km or below the data is fetched directly from MAS
 			zoom_level := zoom_diffs[50] + 1
+			
+			// This is temporary. For these dates the cache goes to 10km
 			if (date[0] == "2013-03-19" || date[0] == "2013-04-04" || layer == "sentinel2_nbart_daily") {
 				zoom_level = zoom_diffs[5] + 1
 			}
@@ -862,19 +818,23 @@ or one that has been reconstructed to enclose the requested tile.
 					tile_file = tile_dir + "/" + s + ".png" 
 				}
 				if _, err := os.Stat(tile_file); err == nil {
+					if (this_zoom_level == 20 || this_zoom_level == 200 || this_zoom_level == 500) {
+						tile_file_exists = true
+					}
+P(tile_file)
 					ReadPNG(tile_file, w)
-//fmt.Println("Elapsed time: ", time.Since(now))
+//fmt.Println("Elapsed Time, Date, Cache Hit:", time.Since(now), Date, tile_file_exists)
 					return
 				} else {
+					tile_file_exists = false
 					tile_file := *tile_basedir + "blank.png"
 					ReadPNG(tile_file, w)
 					return
 				}
 			}
-//P("Will reach here only if !*use_cached_tiles")
-//fmt.Printf("%v > %v\n", reqRes, conf.Layers[idx].ZoomLimit)	
-
+//P("Will reach here if data has to be fetched from GSKY")
 			if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
+Pf(conf.Layers[idx].ZoomLimit)
 				// The code below is to show 'blank.png' if the tile is outside the continent
 				// or 'zoom.png' if the tile is over the continent
 				// In either case, the GRPC node is not called.
@@ -888,7 +848,7 @@ or one that has been reconstructed to enclose the requested tile.
 				ReadPNG(tile_file, w)
 				return
 				// There is no route to this point
-/* DO NOT DELETE				
+/* DO NOT DELETE this original code.				
 				indexer := proc.NewTileIndexer(ctx, conf.ServiceConfig.MASAddress, errChan)
 				go func() {
 					geoReq.Mask = nil
@@ -965,6 +925,8 @@ or one that has been reconstructed to enclose the requested tile.
 				return
 			}
 			out, err := utils.EncodePNG(norm, styleLayer.Palette)
+//s := string(out)
+//fmt.Println(s)		
 			if err != nil {
 				Info.Printf("Error in the utils.EncodePNG: %v\n", err) 
 				http.Error(w, err.Error(), 500)
@@ -1436,12 +1398,13 @@ func serveWCS(ctx context.Context, params utils.WCSParams, conf *utils.Config, r
 		}
 
 		geot := utils.BBox2Geot(*params.Width, *params.Height, params.BBox)
-
+//*params.Format = "geotiff"		
+//P(*params.Format)
 		driverFormat := *params.Format
 		if isWorker {
 			driverFormat = "geotiff" // or "NetCDF"
 		}
-
+//P(driverFormat)
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WcsTimeout)*time.Second)
 		defer timeoutCancel()
 
@@ -1881,7 +1844,7 @@ func generalHandler(conf *utils.Config, w http.ResponseWriter, r *http.Request) 
 			if (val[0] == "PNG_FILE") {
 				*create_tile = true
 			}
-}
+		}
 //fmt.Printf("create_tile: %+v\n", *create_tile)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Wrong WMS parameters on URL: %s", err), 400)
