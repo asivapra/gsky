@@ -28,6 +28,26 @@ Pre-requisites:
 	see 'build_gsky.py' and 'provision_single_node.py' to build GSKY, MAS and to start the servers. 
 =cut
 # --------------------------------------
+use threads;
+
+sub CheckGDALs
+{ 
+	my $gdals = `top -b -n 1`;
+#open (OUT, ">top.txt");
+#print OUT $gdals;
+#close(OUT);
+	my @gdals = split(/\n/, $gdals);
+#print "$gdals[7]\n";
+	# When running curl the top 32 jobs will be gdal. Otherwise, gdal will be far down the list.
+	if ($gdals[7] !~ /gsky-gdal-proce/ && $gdals[8] !~ /gsky-gdal-proce/ && $gdals[9] !~ /gsky-gdal-proce/ && $gdals[10] !~ /gsky-gdal-proce/ && $gdals[11] !~ /gsky-gdal-proce/ && $gdals[12] !~ /gsky-gdal-proce/)
+	{
+		return 1; # Send a 1 to say that GDAL is NOT running
+	}
+	else
+	{
+		return 0;
+	}
+}
 sub WaitForJobs
 {
 	# Wait until all remaining jobs are finished
@@ -38,6 +58,7 @@ sub WaitForJobs
 	my $sleep = 3;
 	my $timeout = 900;
 	my $prev_n_curls = $n_curls;
+	my $gdal_not_running = 0;
 	while ($n_curls > 0) # Remaining jobs
 	{
 		sleep($sleep);
@@ -50,12 +71,18 @@ sub WaitForJobs
 		# It will time out after 900 sec. But, it is better to kill and restart it.
 		if ($prev_n_curls == $n_curls)
 		{
+			# If the curls are not running GDAL, then they can be deleted.
+			# This is a heuristic checking for 'gsky-gdal-process' 
+			# If the top 32 or $n_curls, whichever is lower, in a 'top' command are 'gsky-gdal-process', then curl is alive.
+			# If the top line in 'top' is not 'gsky-gdal-process' for 3 consecutive tests, then assume that curls are dead.
+			$gdal_not_running += &CheckGDALs;
+			
 			$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
 			chop ($n_curls);
-			if ($et > $timeout) 
+			if ($et > $timeout || $gdal_not_running >= 3) 
 			{
 				# Kill the orpaned curl processes. They will be retried 
-				print("$subdir: Killing hung curls...\n");
+				print("$subdir: Killing hung curls... (et:$et > timeout:$timeout || gdal_not_running:$gdal_not_running >= 3)\n");
 				my $curls=`ps -ef | grep curl | grep -v grep | grep $user`;
 				my @lines = split (/\n/, $curls);
 				foreach $line (@lines)
@@ -67,6 +94,7 @@ sub WaitForJobs
 					`kill -9 $pid`;
 				}
 				$et = 0;
+				$gdal_not_running = 0;
 			}
 		}
 		$prev_n_curls = $n_curls;
@@ -150,6 +178,13 @@ sub PurgeBlanksAndCreateTarGz
 		print "No PNG files for $date/$zoom.";
 	}
 }
+sub threaded_task {
+    threads->create(sub { 
+        my $thr_id = threads->self->tid;
+		system ("$cmd");
+        threads->detach(); #End thread.
+    });
+}
 sub CreateTilesDC
 {
 	$o = $diffs{$zoom}; # The X,Y offset for this zoom level between the bottom left corner and the top right corner of the tile
@@ -165,7 +200,7 @@ sub CreateTilesDC
 	{
 		`mkdir -p $subdir`; # Tiles will be created in this dir
 	}
-	$max_jobs = 160; # Arbitrary limit: 10 per core
+	$max_jobs = 64; # Arbitrary limit: 10 per core
 	$curl_timeout = 900; # Arbitrary limit
 
 	# Iterate through the X,Y coordinates to construct the tile's BBOX. 
@@ -176,10 +211,10 @@ sub CreateTilesDC
 	# Skip if the tiles have already been created, tarred and gzipped
 	if (-f $gz) 
 	{
-#		next; 
+		next; 
 	}
-	$jobs = 0;
-	$tot = 0;
+	my $jobs = 0;
+	my $tot = 0;
 	for (my $k=$y; $k < $Y; $k+=$o)
 	{
 		for (my $j=$x; $j <= $X; $j+=$o)
@@ -201,16 +236,18 @@ sub CreateTilesDC
 			}
 
 			# Send a curl request to the GSKY server on Raijin
-			$cmd = "curl -s --max-time $curl_timeout '$url" . "$x,$y,$X,$Y&width=256&height=256" . "'> $png";
+			$cmd = "nice -n 10 curl -s --max-time $curl_timeout '$url" . "$x,$y,$X,$Y&width=256&height=256" . "'> $png";
 
 			# Using the '-o $png' as below has an issue. It will only create the file after successful download.
 			# If the curl is timed out or killed for some reason, there will be no file.
-			# It will not be possible to say whether all files have been cached.
-			# With the 'curl ...' > $png, a file of 0 bytes is created. If curl crashes, this 0-byte file will tell the
-			# program that there are incmplete PNGs. The program can then retry the curl.
+			# Then it will not be possible to say whether all files have been cached.
+			# With the 'curl ...' > $png, a file of 0 bytes is created. If curl crashes, 
+			# this 0-byte file will tell the program that there are incomplete PNGs. 
+			# The program can then retry the curl.
 #			$cmd = "curl -s --max-time $curl_timeout -o $png '$url" . "$x,$y,$X,$Y&width=256&height=256'";
 #print "$cmd\n";
-			system ("$cmd&");
+#			system ("$cmd&");
+			&threaded_task; # Send the jobs as multi-threading instead of just as a background job.
 			if ($jobs > $max_jobs)
 			{
 				print "$subdir: Current Jobs Count: $jobs. Max jobs: $max_jobs. Submitted $tot in $n_tiles{$zoom}\n";
@@ -220,116 +257,7 @@ sub CreateTilesDC
 #if($tot > 500) { return; } # debug			
 		}
 	}
-}
-sub CreateTilesCC
-{
-	$o = $diffs{$zoom}; # The X,Y offset for this zoom level between the bottom left corner and the top right corner of the tile
-	@aus_bbox = split (/,/, $aus_bboxes{$zoom}); # The continent BBOX for this zoom level.
-	$x = $aus_bbox[0];
-	$y = $aus_bbox[1];
-	$X = $aus_bbox[2];
-	$Y = $aus_bbox[3];
-
-	$ct0 = time();
-	$kk = 0;
-	$tot = 0;
-	
-	# The subdir to create the PNG files.
-	$subdir = "$layer/$date/$zoom";
-	`mkdir -p $subdir`; # Tiles will be created in this Tmp dir
-	
-	# Iterate through the X,Y coordinates to construct the tile's BBOX. 
-	for (my $k=$y; $k < $Y; $k+=$o)
-	{
-		$kk++;
-		$jj = 0;
-		for (my $j=$x; $j < $X; $j+=$o)
-		{
-			$jj++;
-			my $x = $j;
-			my $X = $x + $o; if ($X < -0 && $X > -2) { $X = 0; }
-			my $y = $k;
-			my $Y = $y + $o; if ($y == 0 || ($Y < -0 && $Y > -2)) { $Y = 0; }
-			$png = sprintf("%.2f_%.2f_%.2f_%.2f.png",$x, $y, $X, $Y); # Truncate the values to 2 decimals to accommodate any difference in the values sent by Terria
-			$png = "$subdir/$png";
-			$created = 0;
-			if (-f $png) { $created = 1; }
-			if ($created)
-			{
-			}
-			else
-			{
-				$cmd = "curl -s '$url" . "$x,$y,$X,$Y&width=256&height=256" . "'> $png";
-				system ("$cmd&");
-				$tot++;
-#				print "$tot. $cmd\n";
-			}
-		}
-		
-		# Too many job in the queue can slow down things. So, make sure that the numbers are within limits.
-		# The normal parallelisation will send only as many jobs as there are cores and wait for their completion before sending another batch.
-		# It will prove to be more time consuming, as the jobs here take different times to complete. 
-		# Hence, overloading the CPUs with more jobs than the number of cores. Even with some jobs taking more time, the overall speed will increase.
-		# This logic must be reviewed.
-		if ($high_jobs) { sleep(5); }
-		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
-		chop ($n_curls);
-		$high_jobs = 0;
-		$on_curls = $n_curls;
-		if ($n_curls > $jj)
-		{
-			print("Jobs exceed $jj: Row $kk/$jj. Jobs: $n_curls/$on_curls. Waiting to come down....\n");
-		}
-		while ($n_curls > $jj) # Max jobs at a time. Wait until the number comes down
-		{
-			$high_jobs = 1;
-			sleep(1);
-			$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
-			chop ($n_curls);
-		}
-	}
-	# Wait until all remaining jobs are finished
-	$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
-	chop ($n_curls);
-	$on_curls = $n_curls;
-	while ($n_curls > 0) # Remaining jobs
-	{
-		sleep(1);
-		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
-		chop ($n_curls);
-		print("Remaining jobs: $n_curls/$on_curls\n");
-	}
-	
-	$ct1 = time();
-	$et1 = $ct1 - $ct0;
-	
-	# Remove the blank tiles
-	print "Created the tiles. Purging the blanks... \n";
-	chdir($subdir);
-	$ls = `ls -l`;
-	@ls = split(/\n/, $ls);
-	foreach $line (@ls)
-	{
-		if ($line =~ / 820 / || $line =~ / 0 /)
-		{
-			my @fields = split(/ /, $line);
-			my $len = $#fields;
-			$png = $fields[$len];
-			`rm $png`;
-		}
-	}
-	print "Creating a 'tar' archive and deleting the individual files... \n";
-	# Tar the files
-	$tarfile = $layer . "_" . $date . "_" . $zoom . ".tar";
-	`tar cf $tarfile ./*.png`;
-	`gzip $tarfile`;
-	
-	# Remove the PNGs
-	`rm -f ./*.png`;
-	
-	$ct2 = time();
-	$et2 = $ct2 - $ct1;
-	print "Finished! $et1 sec to create tiles; $et2 sec to purge the blanks.\nHit return to continue...\n";
+#print "$subdir:Tot: $tot\n";		
 }
 sub SanityCheck
 {
@@ -354,40 +282,7 @@ sub do_main
 	$sc_action = $ARGV[0];
 	$layer = $ARGV[1];
 	$dates = $ARGV[2]; 
-	$zooms = $ARGV[3]; 
-	&SanityCheck;
-	if ($sc_action eq "cc") # Create the coordinates for tiles. e.g. './create_tiles_using_calculated_coords.pl cc landsat5_nbar_16day 2011-11-08 200'
-	{
-		$date = $dates; $date =~ s/,.*//g;
-		$time = $date . "T00:00:00.000Z";
-		$url = "http://localhost:9511/ows?time=$time&srs=EPSG:3857&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=$layer&bbox=";
-		&CreateTilesCC;
-	}
-
-	if ($sc_action eq "dc0") # Check which dates have data. This is important for the Sentinel2
-	{
-		$getcap = `curl 'http://localhost:9511/ows?service=WMS&version=1.3.0&request=GetCapabilities'`;
-		my @filecontent = split(/\n/, $getcap);
-		my $len = $#filecontent;
-		for (my $j=0; $j <= $len; $j++)
-		{
-			if ($filecontent[$j] =~ /<Dimension name="time" default="current" current="True" units="ISO8601">(.*)<\/Dimension>/)
-			{
-				$times = $1;
-				@times = split(/,/,$times);
-				my $lt = $#times;
-				for (my $k=0; $k <= $lt; $k++)
-				{
-					$time = $times[$k];
-					$date = $time;
-					$date =~ s/T00:00:00.000Z//g;
-					$url = "http://localhost:9511/ows?time=$time&srs=EPSG:3857&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=$layer&bbox=";
-					print "$k.$lt. $date\n";
-				}
-			}
-		}
-		exit;
-	}
+	$zoom_levels = $ARGV[3]; 
 	if ($sc_action eq "dc") # Check which dates have data. This is important for the Sentinel2
 	{
 		$homedir = `pwd`;
@@ -406,9 +301,9 @@ sub do_main
 # Sentinel2_nbart_daily
 #			@times = ("2015-08-21","2015-10-20","2015-12-27","2016-01-06","2016-02-20","2016-04-11","2016-06-16","2016-08-04","2016-09-25","2016-10-05","2016-12-02","2016-12-08","2017-01-20","2017-03-27","2017-05-16","2017-06-30","2017-07-11","2017-08-22","2017-08-28","2017-09-03","2017-09-09","2017-10-23","2017-10-29","2017-11-02","2017-11-08","2018-02-11");
 		}
-		if($zooms)
+		if($zoom_levels)
 		{
-			@zoom_levels = split(/,/,$zooms);
+			@zoom_levels = split(/,/,$zoom_levels);
 		}
 		else
 		{
@@ -472,22 +367,6 @@ sub do_main
 		print " ------ ------ ------Finished all dates and zoom levels! $et0 sec to process $n_times time slices.\nHit return to continue...\n";
 		exit;
 	}
-	if ($sc_action eq "dct") # Check which dates have data. This is important for the Sentinel2
-	{
-		$filename = $ARGV[1];
-		open (INP, "<$filename");
-		while ($line = <INP>)
-		{
-			$n++;
-			if ($line =~ /timestamps":\["(.*?)Z"\]/)
-			{
-				$date = $1;
-				$date =~ s/T.*//g;
-				print "$date\n";
-			}
-		}
-		close(INP);
-	}
 }
 # The difference between MaxX and MinX; The same as MaxY - MinY is used to calculate the BBOXes
 %diffs = (
@@ -518,16 +397,15 @@ sub do_main
 	5   => "12523442.714243278,-5635549.221409474,17532819.79994059,-1252344.271424327",
 	);
 %n_tiles = (
-	3000 => 1,
-	1000 => 4,
-	500 => 6,
+	3000 => 2,
+	1000 => 6,
+	500 => 8,
 	300 => 16,
-	200 => 64,
-	100 => 256,
-	50  => 1024,
-	20  => 4096,
-	10  => 16384,
-	5   => 65536,
+	200 => 72,
+	100 => 255,
+	50  => 957,
+	20  => 3705,
+	10  => 14577,
 	);
 $user = 'avs900';
 &do_main;
