@@ -62,7 +62,7 @@ var (
 	tile_cachedir  	= flag.String("tile_cachedir", "/local/avs900/Australia/DEA_Tiles/Tmp", "Server data directory.")
 //	tile_basedir   	= flag.String("tile_basedir", "/local/avs900/Australia/Himawari8/", "Server data directory.")
 	use_cached_tiles    = flag.Bool("tc", true, "Tiles for this time slice are cached.")
-	build_tiles    	= flag.Bool("bt", false, "Tiles are built on the fly.")
+	build_tiles    	= flag.Bool("bt", true, "Tiles are built on the fly.")
 )
 
 var reWMSMap map[string]*regexp.Regexp
@@ -293,7 +293,8 @@ func CreateAnyZoomTile(this_zoom_level int, n int, x float64, y float64, tile_di
 		s := strings.Split(cells[i][0], "/")
 		bbox := s[len(s)-1]
 		tmp_png := fmt.Sprintf("%v/tmp_%v_%v_%v",*tile_cachedir,this_zoom_level,Date,bbox)
-			go MakeRows(c,n,i,r1_png,tmp_png,*tile_cachedir,cells)
+
+		go MakeRows(c,n,i,r1_png,tmp_png,*tile_cachedir,cells)
     }
 	for i := 0; i < n; i++ {
 		row := <- c
@@ -320,7 +321,6 @@ func CreateAnyZoomTile(this_zoom_level int, n int, x float64, y float64, tile_di
     }
     last := len(pngs) - 1 
     pngs = pngs[:last]
-    
 	cmdString := "/usr/bin/convert " + pngs + " -append " + tile_file
 	exec.Command("sh","-c", cmdString).Output()
 	cmd := exec.Command("/usr/bin/convert", tile_file, "-resize", "256x256!", tile_file)
@@ -347,6 +347,7 @@ func ConstructedTiles(this_zoom_level int,params utils.WMSParams,tile_dir string
 		tile_file = CreateAnyZoomTile(this_zoom_level,2,x,y, tile_dir, z, Date, BBox, tile_file) // 2 = number of 2x2 rows of 100km;
 	}
 	if (this_zoom_level == 300) {
+Info.Printf("%v\n", this_zoom_level)
 		tile_file = CreateAnyZoomTile(this_zoom_level,4,x,y, tile_dir, z, Date, BBox, tile_file) // 4 = number of 4x4 rows of 100km;
 	}
 /*	
@@ -392,7 +393,7 @@ func GetEnclosingTile(params utils.WMSParams) {
 	}
 }
 func ReadPNG(tile_file string, w http.ResponseWriter) {
-//P(tile_file)
+Info.Printf("%v\n", tile_file)
     file, err := os.Open(tile_file)
     if err != nil {
 		tile_file := *tile_basedir + "blank.png"
@@ -701,7 +702,6 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			Date = s[0]
 			BBox = fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
 		}
-
 		var tile_file string
 		if(!*create_tile) {
 //now := time.Now().UTC()
@@ -750,7 +750,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			}
 			// If the zoom level is not cached, then build the tile from the nearest cached level.
 			z := 0.00
-			if (*build_tiles == true) {
+//			if (*build_tiles == true) {
 				*build_tiles = false // This means the build_tiles are determined from the zoom levels. No provision to disable it.
 				if (this_zoom_level == 20 || this_zoom_level == 50) {
 					*build_tiles = true
@@ -764,7 +764,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 					*build_tiles = true
 					z = zoom_diffs[500]
 				}
-			}
+//			}
 			tile_file_exists := false
 			if (srs == "EPSG:4326") {
 				*build_tiles = true
@@ -772,14 +772,14 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			// Lower zoom level tiles are built from cached level tiles
 			if (*build_tiles) {
 				tile_file = fmt.Sprintf("%v/tile_%v_%v_%v.png",*tile_cachedir,this_zoom_level,Date,BBox)
-
 				// Cache the tiles for subsequent displays. This cache will be emptied at midnight
 				if _, err := os.Stat(tile_file); err == nil {
 					tile_file_exists = true
 				}
 				
 				// The first part below is to crop the tiles for non-standard BBOx as in scripts
-				if(this_zoom_level > 10) {
+Info.Printf("%v, %v\n", this_zoom_level, tile_file_exists)
+				if(this_zoom_level > 10 && srs != "EPSG:4326") {
 					if (!tile_file_exists) {
 						tile_file = ConstructedTiles(this_zoom_level,params,tile_dir,z,Date,BBox,tile_file)
 					}
@@ -806,12 +806,8 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 			longdiff = params.BBox[2] - params.BBox[0]
 			// AVS: For most time slices for DEA the lowest zoom level to see the data is 50km.
 			// Hence, at 10 km or below the data is fetched directly from MAS
-			zoom_level := zoom_diffs[50] + 1
+			zoom_level := zoom_diffs[5] + 1
 			
-			// This is temporary. For these dates the cache goes to 10km
-			if (date[0] == "2013-03-19" || date[0] == "2013-04-04" || layer == "sentinel2_nbart_daily") {
-				zoom_level = zoom_diffs[5] + 1
-			}
 			if (*use_cached_tiles && longdiff > zoom_level ) {
 				if (!*build_tiles) {
 					s := fmt.Sprintf("%.2f_%.2f_%.2f_%.2f", params.BBox[0],params.BBox[1],params.BBox[2],params.BBox[3]) // For DEA
@@ -821,9 +817,7 @@ func serveWMS(ctx context.Context, params utils.WMSParams, conf *utils.Config, r
 					if (this_zoom_level == 20 || this_zoom_level == 200 || this_zoom_level == 500) {
 						tile_file_exists = true
 					}
-P(tile_file)
 					ReadPNG(tile_file, w)
-//fmt.Println("Elapsed Time, Date, Cache Hit:", time.Since(now), Date, tile_file_exists)
 					return
 				} else {
 					tile_file_exists = false
@@ -834,7 +828,6 @@ P(tile_file)
 			}
 //P("Will reach here if data has to be fetched from GSKY")
 			if conf.Layers[idx].ZoomLimit != 0.0 && reqRes > conf.Layers[idx].ZoomLimit {
-Pf(conf.Layers[idx].ZoomLimit)
 				// The code below is to show 'blank.png' if the tile is outside the continent
 				// or 'zoom.png' if the tile is over the continent
 				// In either case, the GRPC node is not called.
@@ -1405,6 +1398,8 @@ func serveWCS(ctx context.Context, params utils.WCSParams, conf *utils.Config, r
 			driverFormat = "geotiff" // or "NetCDF"
 		}
 //P(driverFormat)
+//conf.Layers[idx].WcsTimeout = 36000
+//Pi(conf.Layers[idx].WcsTimeout)
 		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Duration(conf.Layers[idx].WcsTimeout)*time.Second)
 		defer timeoutCancel()
 
