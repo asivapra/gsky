@@ -316,7 +316,6 @@ function ajaxFunction(n,form,item)
 			document.getElementById("copytext").innerHTML = str[1];
 			showHide("kml", "block");
 			showHide("copytext", "block");
-//			copybutton.innerHTML = 'Copy';
 			copybutton.style.color = '#0000FF';
 			showHide("copybutton", "block");
 		  }

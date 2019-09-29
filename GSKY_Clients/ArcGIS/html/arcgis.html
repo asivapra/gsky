@@ -161,7 +161,7 @@ else url = 'm_geoglam.html';
 				Layer:
 			</td>
 			<td style="width:80%; padding-top:0px; ">
-				<select name="layer" style="width:300px; height:25px; font-size:12px; background-color:#F7F5D7" onchange="InsertTimes(this)">
+				<select name="layer" style="width:300px; height:25px; font-size:11px; background-color:#F7F5D7" onchange="InsertTimes(this)">
 					<option value="modis_fract_cov_8day|Fractional Cover 8 Day">Fractional Cover 8 Day</option>
 					<option value="modis_tot_cov_8day|Total Cover 8 Day">Total Cover 8 Day</option>
 					<option value="modis_fract_cov_monthly|Monthly Fractional Cover">Monthly Fractional Cover</option>
@@ -177,7 +177,7 @@ else url = 'm_geoglam.html';
 				Region:
 			</td>
 			<td style="width:80%; padding-top:0px">
-				<select name="region" style="width:300px; height:25px; font-size:12px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
+				<select name="region" style="width:300px; height:25px; font-size:11px; padding:0px; background-color:#F7F5D7" onchange="GetCoordinates(this.form,this)">
 					<option value=""></option>
 					<option value="UNLISTED">Unlisted</option>
 					<option value="Australia" selected="">Australia</option>
@@ -205,7 +205,7 @@ else url = 'm_geoglam.html';
 				BBox:
 			</td>
 			<td style="width:80%; padding-top:10px">
-			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:12px;" value="112.324219,-44.087585,153.984375,-10.919618"> 
+			<input type="text" name="bbox" style="width:300px; background-color:#F7F5D7; font-size:11px;" value="112.324219,-44.087585,153.984375,-10.919618"> 
 			<span onmousedown="BlankBboxInputBox(document.forms.google_earth.bbox)"><img src="images/sm_cross.png" alt="Blank Input" title="Blank the BBox value"></span>
 			<img src="images/bbox_finder.png" height="25" alt="BBox Finder" title="BBox finder to define an area" onmousedown="ShowHideBBoxFinder(document.BBox_finder)" width="40">
 			<img src="images/copy_paste.png" width="20px" alt="Copy and Paste" title="Insert the selected BBox value" onmousedown="GetBBoxValue(1)">
@@ -217,8 +217,8 @@ else url = 'm_geoglam.html';
 			</td>
 			<td style="width:80%; padding-top:10px; white-space:nowrap">
 				<span id="times" style="display:block;">
-				<select name="time" style="width:300px; height:25px; font-size:12px; background-color:#F7F5D7">
-					<option value="2018-11-01">2018-11-01</Option>
+				<select name="time" multiple="multiple" size="5" style="width:300px; font-size:11px; background-color:#F7F5D7">
+					<option value="2018-11-01" selected="selected">2018-11-01</Option>
 					<option value="2018-10-28">2018-10-28</Option>
 					<option value="2018-10-20">2018-10-20</Option>
 					<option value="2018-10-12">2018-10-12</Option>
@@ -234,7 +234,7 @@ else url = 'm_geoglam.html';
 				<span id="kml" style="display: none"></span> 
 				
 				<textarea id="copytext" style="display:none; font-size:9px; font-weight:normal; width:500px; height:25px" readonly="readonly"></textarea>
-				<span id="copybutton" style="text-decoration:underline; cursor:pointer; display:none" onmousedown="CopyToClipBoard()">Copy</span>
+				<span id="copybutton" style="text-decoration:underline; cursor:pointer; display:none" title="Copy the URL of KML file and paste it into ArcGIS Online" onmousedown="CopyToClipBoard()">Copy</span>
 			</td>
 		</tr>
 	</table>
