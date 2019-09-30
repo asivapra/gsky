@@ -32,7 +32,7 @@ sub debugEnv
    }
    exit;
 }
-sub debug
+sub d
 {
   $line = $_[0];
   $exit = $_[1];
@@ -182,7 +182,7 @@ sub CountTheTilesLow
 	my $time = $_[6];
 	$time =~ s/T.*$//gi;
 	my $i=$resolution; # Number of degrees for tile axis
-	if ($method == 1) { $i = 3; }
+#	if ($method == 1) { $i = 3; }
 #if ($i < 1) { $i = 1; } # Temp fix for method=1 (directly from GSKY)
 	$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
 	$s -= $s % $i; 
@@ -275,6 +275,101 @@ sub GroundOverlayTiles_0
 </GroundOverlay>
 ";
 }
+sub GetLargeHash # Make a hash of the 3x3 tiles within the bbox
+{
+	my $filename = $_[0];
+	my $rl = $_[1];
+	my $r = $_[2];
+	%tilesHash = {};
+	@bbox = split (/_/, $filename);
+	$m = int(1/$r);
+	my $w = int($bbox[0]) * $m;
+	my $s = int($bbox[1]) * $m;
+	my $e = (int($bbox[2]) - $r) * $m;
+	my $n = (int($bbox[3]) - $r) * $m;
+	for (my $j0 = $w; $j0 < $e; $j0++)
+	{
+		$j = $j0/$m;
+		for (my $k0 = $s; $k0 < $n; $k0++)
+		{
+			$fin = 0;
+			$k = $k0/$m;
+			my $w1 = sprintf("%.1f", $j); 
+			my $s1 = sprintf("%.1f", $k);
+			my $e1 = sprintf("%.1f", $j+$r);
+			my $n1 = sprintf("%.1f", $k+$r);
+			$sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+			if ($rl == 3) 
+			{ 
+				$ii++;
+				$tilesHash{$sub_tile} = 0; 
+			}
+			if ($rl == $resolution) 
+			{ 
+				$ii++;
+				$tilesHash{$sub_tile} = 1; 
+			}
+		}
+	}
+}
+sub GetHash # Make a hash of the 0.1x0.1 tiles within the bbox
+{
+	my $filename = $_[0];
+	my $rl = $_[1];
+	my $r = $_[2];
+	my @bbox = split (/_/, $filename);
+	my $m = int(1/$r);
+	my $w = int($bbox[0] * $m);
+	my $s = int($bbox[1] * $m);
+	my $ee = int($bbox[2] * $m);
+	my $n = int($bbox[3] * $m);
+	for (my $j0 = $w; $j0 < $ee; $j0++)
+	{
+		my $j = $j0/$m;
+		for (my $k0 = $s; $k0 < $n; $k0++)
+		{
+			my $k = $k0/$m;
+			my $w1 = sprintf("%.2f", $j); 
+			my $s1 = sprintf("%.2f", $k);
+			my $e1 = sprintf("%.2f", $j+$r);
+			my $n1 = sprintf("%.2f", $k+$r);
+			my $sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+			$tilesHash{$sub_tile} = 1; 
+			if($n1 >= $n) { last; }
+		}
+	}
+}
+sub GetTheLargeTile
+{
+	my $i = 3; # The tile res
+	my $r = $_[4];  
+	my $m = int(1/$r);
+	my $w = int($_[0]/$m);
+	my $s = int($_[1]/$m);
+	my $e = int($_[2]/$m);
+	my $n = int($_[3]/$m);
+
+	$w -= ($w % $i);
+	$s -= ($s % $i);
+	$e -= ($e % $i);
+	$n -= ($n % $i);
+	$ii = 0;
+	for (my $j = $w; $j < $e; $j+=$i)
+	{
+		for (my $k = $s; $k < $n; $k+=$i)
+		{
+			$w1 = sprintf("%.1f", $j); 
+			$s1 = sprintf("%.1f", $k);
+			$e1 = sprintf("%.1f", $j+$i);
+			$n1 = sprintf("%.1f", $k+$i);
+			$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
+			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+			GetLargeHash($tile_filename,3,$r);
+			$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/3/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_3" . ".png";
+			if($n1 >= $n) { last; }
+		}
+	}
+}
 sub CountTheTiles 
 {
 	# To count the high res tiles enclosed in the BBox
@@ -312,11 +407,113 @@ sub CountTheTiles
 		&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
 	}
 	
-	if ($n_tiles > 125)
+	if ($n_tiles > 12500)
 	{
-		&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
-		&debug("<font style=\"color:#008000; font-size:12px\">May take a long time!</font>");
+#		&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
+#		&debug("<font style=\"color:#008000; font-size:12px\">May take a long time!</font>");
 	}
+}
+sub DEA_High
+{
+	my $layer = $_[0];
+	my $title = $_[1];
+	if (!$time)
+	{
+		&debug("No \$time specified. Exitting!",1);
+	}
+	my @bbox = split(/,/, $bbox);
+	my $r = $resolution;
+	my $m = int(1/$r);
+	my $w = int($bbox[0] * $m);
+	my $s = int($bbox[1] * $m);
+	my $e = int($bbox[2] * $m);
+	my $n = int($bbox[3] * $m);
+	my $w1 = sprintf("%.1f", $w/$m); 
+	my $s1 = sprintf("%.1f", $s/$m);
+	my $e1 = sprintf("%.1f", $e/$m);
+	my $n1 = sprintf("%.1f", $n/$m);
+	my $ct0 = time();
+	CountTheTiles($w,$s,$e,$n);
+	my @keys = sort keys %tilesHash;
+	my $n_tiles = 0;
+	$bbox0 = "$w1,$s1,$e1,$n1"; # Recalculatd bbox for the tiles.
+	$groundOverlay = "<!-- Start of GroundOverlays -->\n\t";
+	Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
+	foreach my $key (@keys)
+	{
+		if($tilesHash{$key})
+		{
+			my $tile = $key;
+			$tile =~ s/_/,/g;
+			my @bbox = split(/,/,$tile);
+			$west = $bbox[0];
+			$south = $bbox[1];
+			$east = $bbox[2];
+			$north = $bbox[3];
+			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_$r" . ".png";
+			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+			if (!-f $tile_file)
+			{
+				`mkdir -p $basedir/$layer/$time/$r`;
+				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+				`curl '$gskyGetUrl' > $tile_file`; # Fetch and write the PNG file
+			}
+			my $size = -s $tile_file;
+			if ($size == 2132) { next; } # This is an empty tile image
+			$n_tiles++;
+			$bbox = "$west,$south,$east,$north";
+=pod
+			if ($method == 1)
+			{
+				$gskyUrl = "https://gsky.nci.org.au/ows/dea?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+			}
+			else
+			{
+				$gskyUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+			}
+			if ($callGsky)
+			{
+				$tileUrl = $gskyUrl;
+				$tileUrl =~ s/&/&amp;/gi;
+			}
+=cut
+			$time =~ s/T.*$//gi;
+			$title = "$time: $west,$south";
+			GroundOverlayTiles($n_tiles,$title);
+			$placemark = ""; # Blank this for next round
+		}
+	}
+#	Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
+	$groundOverlay .= "\n\t<!-- End of GroundOverlays -->";
+	my $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<kml xmlns=\"http://www.opengis.net/kml/2.2\">
+<Document>
+	<name>$basetitle</name>
+	<Folder>
+		<name>$date</name>
+	$groundOverlay
+	</Folder>
+</Document>
+</kml>
+	";
+	$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
+	$outfile =~ s/ /_/gi;
+	open(OUT, ">$kmlDir/$outfile");
+	print OUT "$xml\n";
+	close(OUT);
+	print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+exit;
+	
+	my $ct1 = time();
+	$kml = "$groundOverlay";
+	$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
+	$outfile =~ s/ /_/gi;
+	open(OUT, ">$kmlDir/$outfile");
+	print OUT "$kml\n";
+	close(OUT);
+	print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+	exit;
 }
 sub do_main
 {
@@ -436,10 +633,10 @@ sub do_main
 			my $title = $fields[1];
 			my $basetitle = $title;
 			my $i=$resolution; # Number of degrees for tile axis
-			if ($method == 1) { $i = 3; }
+#			if ($method == 1) { $i = 3; }
 			if ($i < 1)
 			{
-#				DEA_High($layer, $title);
+				DEA_High($layer, $title);
 #				$i = 1; # Temp fix for method=1 (directly from GSKY)
 			}
 			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
@@ -546,7 +743,7 @@ sub do_main
 $|=1;
 #$domain = "webgenie.com";
 $domain = $ENV{HTTP_HOST};
-$gskyUrl = "https://gsky.nci.org.au/ows/geoglam";
+$gskyUrl = "http://gsky.nci.org.au/ows/dea"; # Cannot use https:// as curl does not like it.
 $docroot = "/var/www/vhosts/webgenie.com/httpdocs/GSKY/ArcGIS/DEA";
 $kmlDir = "$docroot/KML";
 $basedir = "$docroot/Tiles";

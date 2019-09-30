@@ -179,7 +179,7 @@ function ShowHideBBoxFinder (iframe)
 {
 	var rand = Math.floor((Math.random()*1000000)+1);
 	var iframe = document.getElementById('BBox_finder');
-	iframe.src = "/BBox?uid="+rand;
+	iframe.src = "../BBox?uid="+rand;
 	showHide('top_section', 'div', 'none'); showHide('nww_section', 'div', 'none'); showHide('Details', 'div', 'none'); showHideToggle('bbox_finder', 'div');
 	bbox_finder=document.getElementById('bbox_finder');
 	bbox_finder.scrollIntoView(true);
