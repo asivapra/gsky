@@ -207,7 +207,7 @@ function ValidateInput(form,n)
 	}
 	showHide("killed",'span',"none");
 	document.getElementById("kml").innerHTML = "<img alt=\"Wait!\" src=\"images/ajax-loader.gif\"> Fetching...&nbsp;&nbsp;&nbsp;<input type=\"button\" value=\"Cancel\" style=\"color:red\" onclick=\"CancelJob(this.form)\">";
-	showHide("kml",'span',"block");
+	showHide("kml","span","block");
 	ajaxFunction(n,form);
 }
 function CountTheTiles(form)
@@ -449,16 +449,17 @@ function ajaxFunction(n,form,item)
 			if(response && do_not_show_layers < 0)
 			{
 				var str = response.split('"');
+				var validUrl = response.indexOf("https://");
 				document.getElementById("kml").innerHTML = response;
 				showHide("kml", "block");
-				document.getElementById("copytext").innerHTML = str[1];
-				showHide("copytext", "block");
-				copybutton.style.color = '#0000FF';
-				showHide("copybutton", "block");
-				var rand = Math.floor((Math.random()*1000000)+1);
-//				showHide("kml", "div", "block");
-//				showHide('top_section', 'div', 'none'); 
-//				showHide('nww_section', 'div', 'block'); 
+				if (validUrl > 0)
+				{
+					document.getElementById("copytext").innerHTML = str[1];
+					showHide("copytext", "block");
+					copybutton.style.color = '#0000FF';
+					showHide("copybutton", "block");
+					var rand = Math.floor((Math.random()*1000000)+1);
+				}
 			}
 			else
 			{
@@ -519,6 +520,9 @@ function ajaxFunction(n,form,item)
 	if (n == 4) // KML for DEA
 	{
 		CSReadCookie();
+//		showHide("kml", "span", "none");
+		showHide("copytext", "textarea", "none");
+		showHide("copybutton", "span", "none");
 		var times = []; // Select multiple times
 		for ( var i = 0; i < form.time.selectedOptions.length; i++) 
 		{

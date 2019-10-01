@@ -241,40 +241,6 @@ sub GroundOverlayTiles
 		</GroundOverlay>
 		";
 }
-sub GroundOverlayTiles_0
-{
-	# Called from DEA alone
-	my $n_tiles = $_[0];
-	my $title = $_[1];
-	my $x = ($east+$west)/2.0;
-	my $y = ($north+$south)/2.0;
-	my $eye = abs($south - $north)*120*1000;
-	my $eye1 = abs($east - $west)*120*1000;
-	if ($eye1 > $eye) { $eye = $eye1; } 
-	$lookAt = "<LookAt> 
-		<longitude>$x</longitude>
-		<latitude>$y</latitude>
-		<altitude>$eye</altitude>
-	</LookAt>";
-	# To create the multi "GroundOverlay" KML for displaying the DEA tiles
-	$groundOverlay .= "
-<GroundOverlay>
-	<name>$title</name>
-	<visibility>1</visibility>
-	<Icon>
-		<href>
-			$tileUrl
-		</href>
-	</Icon>
-	<LatLonBox>
-		<west>$west</west>
-		<south>$south</south>
-		<east>$east</east>
-		<north>$north</north>
-	</LatLonBox>
-</GroundOverlay>
-";
-}
 sub GetLargeHash # Make a hash of the 3x3 tiles within the bbox
 {
 	my $filename = $_[0];
@@ -339,37 +305,6 @@ sub GetHash # Make a hash of the 0.1x0.1 tiles within the bbox
 		}
 	}
 }
-sub GetTheLargeTile
-{
-	my $i = 3; # The tile res
-	my $r = $_[4];  
-	my $m = int(1/$r);
-	my $w = int($_[0]/$m);
-	my $s = int($_[1]/$m);
-	my $e = int($_[2]/$m);
-	my $n = int($_[3]/$m);
-
-	$w -= ($w % $i);
-	$s -= ($s % $i);
-	$e -= ($e % $i);
-	$n -= ($n % $i);
-	$ii = 0;
-	for (my $j = $w; $j < $e; $j+=$i)
-	{
-		for (my $k = $s; $k < $n; $k+=$i)
-		{
-			$w1 = sprintf("%.1f", $j); 
-			$s1 = sprintf("%.1f", $k);
-			$e1 = sprintf("%.1f", $j+$i);
-			$n1 = sprintf("%.1f", $k+$i);
-			$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-			GetLargeHash($tile_filename,3,$r);
-			$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/3/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_3" . ".png";
-			if($n1 >= $n) { last; }
-		}
-	}
-}
 sub CountTheTiles 
 {
 	# To count the high res tiles enclosed in the BBox
@@ -379,7 +314,6 @@ sub CountTheTiles
 	my $n = $_[3];
 	my $r = $resolution;
 	my $m = int(1/$r);
-	GetTheLargeTile($w,$s,$e,$n,$r); # Find the 3x3 tile that covers this bbox
 	my $n_tiles = 0;
 	for (my $j0 = $w; $j0 < $e; $j0++)
 	{
@@ -406,12 +340,123 @@ sub CountTheTiles
 	{
 		&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
 	}
-	
-	if ($n_tiles > 12500)
+}
+sub ThrottleTheJobs
+{
+	$n_curls = `ps -ef | grep curl | grep -v grep |wc -l`;
+	chop ($n_curls);
+	$on_curls = $n_curls;
+	while ($n_curls > $max_jobs) # Max jobs at a time. Wait until the number comes down
 	{
-#		&debug("<font style=\"color:red; font-size:12px\">Too many tiles to be fetched. A smaller BBox is required for high resolution.</font>");
-#		&debug("<font style=\"color:#008000; font-size:12px\">May take a long time!</font>");
+		print OUT "Throttling: $n_curls/$on_curls...\n";
+		sleep(3);
+		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
+		chop ($n_curls);
 	}
+	print OUT "Releasing throttle...$n_curls; Remaining Tiles: $tot_tiles\n";
+}
+sub WaitForJobs
+{
+	# Wait until all remaining jobs are finished
+	$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
+	chop ($n_curls);
+	$on_curls = $n_curls;
+	my $et = 0;
+	my $sleep = 3;
+	my $timeout = 900;
+	my $prev_n_curls = $n_curls;
+	my $gdal_not_running = 0;
+	while ($n_curls > 0) # Remaining jobs
+	{
+		sleep($sleep);
+		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
+		chop ($n_curls);
+		$et+= $sleep;
+		print OUT "$subdir: Remaining Jobs: $n_curls/$on_curls - $et sec\n";
+		
+		# Sometimes a curl process hangs. It could be that the GRPC worker became unresponsive for the GSKY.
+		if ($prev_n_curls == $n_curls)
+		{
+			$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
+			chop ($n_curls);
+		}
+		$prev_n_curls = $n_curls;
+	}
+}
+sub FetchTiles
+{
+	my $jobs = 0;
+	$max_jobs = 96;
+	my $layer = $_[0];
+	my $r = $_[1];
+	open (OUT, ">>/tmp/arcgis_dea.log");
+	print OUT "---------------------------------------------\n";
+	print OUT "Total tiles: $tot_tiles\n";
+	foreach my $key (@keys)
+	{
+		if($tilesHash{$key})
+		{
+			my $tile = $key;
+			$tile =~ s/_/,/g;
+			my @bbox = split(/,/,$tile);
+			$west = $bbox[0];
+			$south = $bbox[1];
+			$east = $bbox[2];
+			$north = $bbox[3];
+			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_$r" . ".png";
+			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+			if (!-f $tile_file)
+			{
+				$jobs++;
+				$tot_tiles--;
+				`mkdir -p $basedir/$layer/$time/$r`;
+				$bbox = "$west,$south,$east,$north";
+				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+				my $cmd = "curl '$gskyGetUrl' > $tile_file";
+				system ("$cmd&");
+				if ($jobs > $max_jobs)
+				{
+					&ThrottleTheJobs;
+					$jobs = 0;
+				}
+			}
+		}
+	}
+	&WaitForJobs;
+	# See if any WMS Timeouts. These are PNGs with a size of 22 bytes
+	chdir "$basedir/$layer/$time/$r";
+	my $tilelist = `ls -1 *.png`;
+	my @tilelist = split (/\n/, $tilelist);
+	my $timeouts = 0;
+	foreach my $tile_file (@tilelist)
+	{
+		my $size = -s $tile_file;
+		if ($size == 22) 
+		{ 
+			print OUT "$tile_file: $size\n";
+			unlink($tile_file);
+			$timeouts++;
+		} # This is an empty tile image
+	}
+	if ($timeouts && $n_fetchtiles < 5)
+	{
+		$n_fetchtiles++;
+		print OUT "Running FetchTiles again...\n";
+		&FetchTiles($layer, $r);
+	}
+	else
+	{
+		if ($n_fetchtiles < 5)
+		{
+			print OUT "Successfully fetched all tiles!\n";
+		}
+		else
+		{
+			print OUT "Error: Some tiles were timed out. They will appear as blanks on the map.\n";
+		}
+	}
+	close(OUT);
 }
 sub DEA_High
 {
@@ -434,11 +479,20 @@ sub DEA_High
 	my $n1 = sprintf("%.1f", $n/$m);
 	my $ct0 = time();
 	CountTheTiles($w,$s,$e,$n);
-	my @keys = sort keys %tilesHash;
+	@keys = sort keys %tilesHash;
+	$tot_tiles = $#keys + 1;
+	if ($tot_tiles > 2500) # Allow up to 5x5 degree area
+	{
+		&debug("<span style=\"color:red;\"><b>Selected area is too big! Maximum size: 5&deg; x 5&deg; tile. Choose a smaller area.</b></span>",1);
+	}
 	my $n_tiles = 0;
 	$bbox0 = "$w1,$s1,$e1,$n1"; # Recalculatd bbox for the tiles.
 	$groundOverlay = "<!-- Start of GroundOverlays -->\n\t";
 	Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
+	
+	# Fetch all tiles in parallel
+	$n_fetchtiles = 0; # If necessary, repeat the FetchTiles for a mximum of 5 times.
+	&FetchTiles($layer, $r);
 	foreach my $key (@keys)
 	{
 		if($tilesHash{$key})
@@ -453,12 +507,12 @@ sub DEA_High
 			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_$r" . ".png";
 			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
 			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-			if (!-f $tile_file)
-			{
-				`mkdir -p $basedir/$layer/$time/$r`;
-				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
-				`curl '$gskyGetUrl' > $tile_file`; # Fetch and write the PNG file
-			}
+#			if (!-f $tile_file)
+#			{
+#				`mkdir -p $basedir/$layer/$time/$r`;
+#				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+#				`curl '$gskyGetUrl' > $tile_file`; # Fetch and write the PNG file
+#			}
 			my $size = -s $tile_file;
 			if ($size == 2132) { next; } # This is an empty tile image
 			$n_tiles++;
@@ -732,6 +786,31 @@ sub do_main
 	print OUT "$xml\n";
 	close(OUT);
 			print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
+			exit;
+		}
+		if ($sc_action eq "Kill")
+		{
+			# Kill previous CGI
+			$pquery = reformat($ARGV[2]);
+			$pquery =~ s/\\//gi;
+			Get_fields;	# Parse the $pquery to get all form input values
+			print "Content-type: text/html\n\n"; $headerAdded = 1;
+			$layer =~ s/\|/\\|/g;
+			my $pscmd = "ps -ef | grep \"perl arcgis_dea.cgi DEA.*$layer\" | grep -v grep";
+			my $psline = `$pscmd`;
+			$psline =~ tr/  / /s;
+			my @fields = split (/\s/, $psline);
+			$pid = $fields[1];
+			my $thispid = $$;
+			if ($pid && $pid ne $thispid) 
+			{ 
+				`kill $pid`;
+				print "<font style=\"color:#FF0000\">Killed the process. ID = <b>$pid</b></font>";
+			}
+			else
+			{
+				print "Could not find any process to kill.\n";
+			}
 			exit;
 		}
 		else
