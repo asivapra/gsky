@@ -349,7 +349,7 @@ sub ThrottleTheJobs
 	while ($n_curls > $max_jobs) # Max jobs at a time. Wait until the number comes down
 	{
 		print OUT "Throttling: $n_curls/$on_curls...\n";
-		sleep(3);
+		sleep($sleep);
 		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
 		chop ($n_curls);
 	}
@@ -362,7 +362,6 @@ sub WaitForJobs
 	chop ($n_curls);
 	$on_curls = $n_curls;
 	my $et = 0;
-	my $sleep = 3;
 	my $timeout = 900;
 	my $prev_n_curls = $n_curls;
 	my $gdal_not_running = 0;
@@ -372,7 +371,7 @@ sub WaitForJobs
 		$n_curls = `ps -ef | grep curl | grep -v grep | wc -l`;
 		chop ($n_curls);
 		$et+= $sleep;
-		print OUT "$subdir: Remaining Jobs: $n_curls/$on_curls - $et sec\n";
+		print OUT "Remaining Jobs: $n_curls/$on_curls - $et sec\n";
 		
 		# Sometimes a curl process hangs. It could be that the GRPC worker became unresponsive for the GSKY.
 		if ($prev_n_curls == $n_curls)
@@ -383,12 +382,31 @@ sub WaitForJobs
 		$prev_n_curls = $n_curls;
 	}
 }
+sub DeleteBlanks
+{
+	chdir "$basedir/$layer/$time/$r";
+	my $tilelist = `ls -1 *.png`;
+	my @tilelist = split (/\n/, $tilelist);
+	foreach my $tile_file (@tilelist)
+	{
+		my $size = -s $tile_file;
+		# If any tile has timed out, blank or no data, then delete them
+		if ($size == 2232 || $size == 820 || $size == 22) 
+		{ 
+			print OUT "Deleting: $tile_file: $size\n";
+			unlink($tile_file);
+		} 
+	}
+}
 sub FetchTiles
 {
 	my $jobs = 0;
-	$max_jobs = 96;
+	$max_jobs = 50;
 	my $layer = $_[0];
 	my $r = $_[1];
+	my $date = $time;
+	$date =~ s/T.*//g;
+	$time =~ s/T.*//g;
 	open (OUT, ">>/tmp/arcgis_dea.log");
 	print OUT "---------------------------------------------\n";
 	print OUT "Total tiles: $tot_tiles\n";
@@ -403,17 +421,18 @@ sub FetchTiles
 			$south = $bbox[1];
 			$east = $bbox[2];
 			$north = $bbox[3];
-			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_$r" . ".png";
-			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
+			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $date . "_$r" . ".png";
+			$tile_file = "$basedir/$layer/$date/$r/$tile_filename";
+			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$date/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
 			if (!-f $tile_file)
 			{
 				$jobs++;
 				$tot_tiles--;
-				`mkdir -p $basedir/$layer/$time/$r`;
+				`mkdir -p $basedir/$layer/$date/$r`;
 				$bbox = "$west,$south,$east,$north";
-				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=$layer&bbox=$bbox&width=256&height=256";
 				my $cmd = "curl '$gskyGetUrl' > $tile_file";
+#print OUT "$cmd\n";
 				system ("$cmd&");
 				if ($jobs > $max_jobs)
 				{
@@ -432,12 +451,14 @@ sub FetchTiles
 	foreach my $tile_file (@tilelist)
 	{
 		my $size = -s $tile_file;
+		# If any tile has timed out, then re-fetch them
 		if ($size == 22) 
 		{ 
 			print OUT "$tile_file: $size\n";
 			unlink($tile_file);
 			$timeouts++;
-		} # This is an empty tile image
+			$tot_tiles++; # These are to be re-fetched
+		} 
 	}
 	if ($timeouts && $n_fetchtiles < 5)
 	{
@@ -447,6 +468,7 @@ sub FetchTiles
 	}
 	else
 	{
+		&DeleteBlanks; # Delete the blank and "no data available" tiles
 		if ($n_fetchtiles < 5)
 		{
 			print OUT "Successfully fetched all tiles!\n";
@@ -506,15 +528,13 @@ sub DEA_High
 			$north = $bbox[3];
 			$tile_filename = $west . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_$r" . ".png";
 			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
+#				my $size = -s $tile_file;
+#			if ($size <= 2132) { next; } # This is an empty tile image
 			$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-#			if (!-f $tile_file)
-#			{
-#				`mkdir -p $basedir/$layer/$time/$r`;
-#				$gskyGetUrl = "$gskyUrl?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
-#				`curl '$gskyGetUrl' > $tile_file`; # Fetch and write the PNG file
-#			}
-			my $size = -s $tile_file;
-			if ($size == 2132) { next; } # This is an empty tile image
+			if (!-f $tile_file)
+			{
+				$tileUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/blank.png";
+			}
 			$n_tiles++;
 			$bbox = "$west,$south,$east,$north";
 =pod
@@ -687,11 +707,9 @@ sub do_main
 			my $title = $fields[1];
 			my $basetitle = $title;
 			my $i=$resolution; # Number of degrees for tile axis
-#			if ($method == 1) { $i = 3; }
-			if ($i < 1)
+			if ($i <= 1)
 			{
 				DEA_High($layer, $title);
-#				$i = 1; # Temp fix for method=1 (directly from GSKY)
 			}
 			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
 			my $w = int($bbox[0]);
@@ -740,17 +758,17 @@ sub do_main
 						$bbox = "$west,$south,$east,$north";
 						if ($method == 1)
 						{
-							$gskyUrl = "https://gsky.nci.org.au/ows/dea?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=landsat8_nbar_16day&bbox=$bbox&width=256&height=256";
+							$gskyUrl = "https://gsky.nci.org.au/ows/dea?time=$time" . "T00:00:00.000Z&srs=EPSG:4326&transparent=true&format=image/png&exceptions=application/vnd.ogc.se_xml&styles=&tiled=true&feature_count=101&service=WMS&version=1.1.1&request=GetMap&layers=$layer&bbox=$bbox&width=256&height=256";
 						}
 						else
 						{
 							$gskyUrl = "https://$domain/GSKY/ArcGIS/DEA/Tiles/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
 						}
-						if ($callGsky)
-						{
+#						if ($callGsky)
+#						{
 							$tileUrl = $gskyUrl;
 							$tileUrl =~ s/&/&amp;/gi;
-						}
+#						}
 #						$title = "$time: $w1,$s1";
 						$title = "$w1,$s1";
 						GroundOverlayTiles($n_tiles,$title);
@@ -833,11 +851,12 @@ $aus_bboxes = "aus_bboxes.csv";
 $create_tiles_sh = "create_tiles.sh";
 $visibility = 1;  
 #$layer = "LS8:NBAR:TRUE";
-$layer = "landsat8_nbart_16day";
-$title = "DEA Landsat 8 surface reflectance true colour";
+#$layer = "landsat8_nbart_16day";
+#$title = "DEA Landsat 8 surface reflectance true colour";
 $callGsky = 1; # Use GetMap calls to GSKY instead of using the PNG files at high res
 $ct0 = time();
 $ProcessTime = `/bin/date`; $ProcessTime =~ s/\n//g ;
+$sleep = 1;
 &do_main;
 =pod
 Cache location: C:\Users\avs29\AppData\Local\Google\Chrome\User Data\Default\Cache
