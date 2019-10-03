@@ -2,14 +2,14 @@
   // ///////////////////////////////////////////////////////////////////////////
   // ***************************************************************************
   //
-  //  Site: Metallographic.com
+  //  Site: webgenie.com
   //   VERSION: 1.0
   // 
   // ***************************************************************************
   // ///////////////////////////////////////////////////////////////////////////
   // ***************************************************************************
   // Functions added by AVS
-  // Copyright (c) 2011-2015 by AV Sivaprasad and WebGenie Software Pty Ltd.
+  // Copyright (c) 2011-2019 by AV Sivaprasad and WebGenie Software Pty Ltd.
 // Global variables
 var cgi = "cgi-bin/arcgis.cgi"; // calls users.cgi http://www.webgenie.com/GSKY/GoogleEarth/KML/Australia_Fractional_Cover_8_Day_2018-11-01.kml
 function CopyToClipBoard()
@@ -23,24 +23,9 @@ function CopyToClipBoard()
 	textBox.style.display = 'none';
 	showHide("copytext", "none");
 	showHide("copybutton", "none");
-}
-function CopyLink()
-{
-	var copyTextareaBtn = document.querySelector('.js-textareacopybtn');
-	
-	copyTextareaBtn.addEventListener('click', function(event) {
-	  var copyTextarea = document.querySelector('.js-copytextarea');
-	  copyTextarea.focus();
-	  copyTextarea.select();
-	
-	  try {
-		var successful = document.execCommand('copy');
-		var msg = successful ? 'successful' : 'unsuccessful';
-		console.log('Copying text command was ' + msg);
-	  } catch (err) {
-		console.log('Oops, unable to copy');
-	  }
-	});
+	showHide("arcgis_window",'iframe',"block");
+	showHide('bbox_finder','div','none');
+	window.location.href = "#arcgis";
 }
 function Commify0(x) 
 {
@@ -61,13 +46,13 @@ function Monify(value)
 }
 function ZoomInAroundCrosshair()
 {
-	var form = document.forms.google_earth;
+	var form = document.forms.arcgis_geoglam;
 	var crosshair = form.crosshair.value;
 	var zoom_size = form.zoom_size.value;
 	if (!crosshair) 
 	{ 
 		GetBBoxValue(2);
-		crosshair = document.forms.google_earth.crosshair.value;
+		crosshair = document.forms.arcgis_geoglam.crosshair.value;
 		if (!crosshair) return;
 	}
 	var xy = crosshair.split(",");
@@ -94,7 +79,7 @@ function GetBBoxValue(box)
 		try 
 		{
 			var bbox= document.getElementById('BBox_finder').contentWindow.document.getElementById('boxbounds').innerHTML;
-			document.forms.google_earth.bbox.value = bbox;
+			document.forms.arcgis_geoglam.bbox.value = bbox;
 		}
 		catch(err)
 		{
@@ -107,7 +92,7 @@ function GetBBoxValue(box)
 		try 
 		{
 			var crosshair= document.getElementById('BBox_finder').contentWindow.document.getElementById('center').innerHTML;
-			document.forms.google_earth.crosshair.value = crosshair;
+			document.forms.arcgis_geoglam.crosshair.value = crosshair;
 		}
 		catch(err)
 		{
@@ -122,7 +107,7 @@ function GetBBoxValue(box)
 		var title = x + "," + y;
 		
 //alert(title);		
-		document.forms.google_earth.region_title.value = title;
+		document.forms.arcgis_geoglam.region_title.value = title;
 	}
 }
 function BlankBboxInputBox(item)
@@ -160,7 +145,7 @@ function ValidateInput(form,n)
 	}
 //	showHide("killed",'span',"none");
 	document.getElementById("kml").innerHTML = "<img alt=\"Wait!\" src=\"images/ajax-loader.gif\"> Fetching...&nbsp;&nbsp;&nbsp;<input type=\"button\" value=\"Cancel\" style=\"color:red\" onclick=\"CancelJob(this.form)\">";
-	showHide("kml",'span',"block");
+//	showHide("kml",'span',"block");
 	ajaxFunction(n,form);
 }
 function GetCoordinates(form,item)
@@ -197,6 +182,11 @@ function GetCoordinates(form,item)
 }
 function InsertTimes(item,prd)
 {
+	var i = item.selectedIndex;
+	var main_images = ['fractional_cover_8day.png','total_cover_8day.png','monthly_fractional_cover.png','monthly_total_cover.png','decile_total_cover.png','anomaly_total_cover.png','monthly_precipitation.png'];
+	var main_image = document.getElementById("main_image");	
+	var this_image = main_images[i];
+	main_image.src = 'images/' + this_image; 
 	var times = [];
 	if (prd == 'dea')
 	{
@@ -240,7 +230,7 @@ function InsertTimes(item,prd)
 	}
 	option_line += "</select>\n";
 	document.getElementById("times").innerHTML = option_line;
-	document.forms.google_earth.time[0].selected="selected";
+	document.forms.arcgis_geoglam.time[0].selected="selected";
 	showHide("times",'block');
 }
 function showHideToggle(id,type)
@@ -307,23 +297,20 @@ function ajaxFunction(n,form,item)
 	  if(xmlHttp.readyState==4)
 	  {
  		  response = xmlHttp.responseText;
-		  if (n == 1) // KML - GEOGLAM
+		  if (n == 1) // Process the response
 		  {
-//alert('n = ' + n + ' response = ' + response);
-// <small><a href="http://www.webgenie.com/GSKY/GoogleEarth/KML/Australia_Fractional_Cover_8_Day_2018-09-26.kml">Australia_Fractional_Cover_8_Day_2018-09-26.kml</a></small>
 			var str = response.split('"');
 			document.getElementById("kml").innerHTML = response;
 			document.getElementById("copytext").innerHTML = str[1];
-			showHide("kml", "block");
-			showHide("copytext", "block");
+			showHide("kml", 'span', "block");
+			showHide("copytext", 'textarea', "block");
 			copybutton.style.color = '#0000FF';
-			showHide("copybutton", "block");
-		  }
-		  if (n == 2) // KML - DEA
-		  {
-//alert('n = ' + n + ' response = ' + response);
-			document.getElementById("kml").innerHTML = response;
-			showHide("kml", "block");
+			showHide("copybutton", 'span', "block");
+			showHide("arcgis_window",'iframe',"none");
+			showHide('bbox_finder','div','none');
+			showHide('top_section','div','none');
+			showHide('Details','div','none');
+			showHide("help", 'span', "block");
 		  }
 		  if (n == 3) // Kill
 		  {
@@ -333,8 +320,15 @@ function ajaxFunction(n,form,item)
 		  }
 	  }
 	}
-	if (n == 1) // KML
+	if (n == 1) // Send the URL
 	{
+		showHide("kml", 'span', "block");
+		showHide("copytext", 'textarea', "none");
+		showHide("copybutton", 'span', "none");
+		showHide("arcgis_window",'iframe',"none");
+		showHide('bbox_finder','div','none');
+		showHide('top_section','div','none');
+		showHide('Details','div','none');
 		var times = []; // Select multiple times
 		for ( var i = 0; i < form.time.selectedOptions.length; i++) 
 		{
@@ -344,6 +338,7 @@ function ajaxFunction(n,form,item)
 		bbox = bbox.split(",");
 		pquery = 
 		"wmsclient=" + form.wmsclient.value +
+		"&offset=" + form.offset.value +
 		"&layer=" + form.layer.value +
 		"&region=" + form.region.value +
 		"&west=" + bbox[0] +
@@ -355,27 +350,6 @@ function ajaxFunction(n,form,item)
 		pquery = pquery.replace("+","%2B");
 		var ran_number= Math.random()*5000;
 		url = cgi + "?GEOGLAM+" + ran_number + "+" + pquery;
-	}
-	if (n == 2) // KML for DEA
-	{
-		var times = []; // Select multiple times
-		for ( var i = 0; i < form.time.selectedOptions.length; i++) 
-		{
-			times[i] = form.time.selectedOptions[i].value;
-		}
-		create_tiles = "";
-//		if (form.create_tiles.checked) { create_tiles = "create_tiles"; } 
-		var bbox = form.bbox.value.replace(/ /g, '');
-		pquery = 
-		"&layer=" + form.layer.value +
-		"&region=" + form.region.value +
-		"&bbox=" + bbox +
-		"&region_title=" + form.region_title.value +
-		"&time=" + times;
-		pquery = escape(pquery);
-		pquery = pquery.replace("+","%2B");
-		var ran_number= Math.random()*5000;
-		url = cgi + "?DEA+" + ran_number + "+" + pquery;
 	}
 	if (n == 3) // Kill previous CGI
 	{

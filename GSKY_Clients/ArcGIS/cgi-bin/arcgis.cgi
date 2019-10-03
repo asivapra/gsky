@@ -65,9 +65,9 @@ sub GroundOverlay
 			</Icon>
 			<LatLonBox>
 				<west>$west</west>
-				<south>$south_latlon</south>
+				<south>$south_adjusted</south>
 				<east>$east</east>
-				<north>$north_latlon</north>
+				<north>$north_adjusted</north>
 			</LatLonBox>
 		</GroundOverlay>
 	</Folder>
@@ -75,17 +75,12 @@ sub GroundOverlay
 }
 sub CreateSingleKML
 {
-	$north_latlon = $north;
-	$south_latlon = $south;
-	if ($wmsclient eq "ArcGIS" && $region eq "Australia")
-	{
-		$north_latlon++;
-		$south_latlon++;
-	}
+	$north_adjusted = $north+$offset;
+	$south_adjusted = $south+$offset;
 	$kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
 <GroundOverlay>
-    <name>$title</name>
+    <name>$date</name>
     <visibility>1</visibility>
     <Icon>
         <href>
@@ -93,8 +88,8 @@ sub CreateSingleKML
         </href>
     </Icon>
     <LatLonBox>
-        <north>$north_latlon</north>
-        <south>$south_latlon</south>
+        <north>$north_adjusted</north>
+        <south>$south_adjusted</south>
         <east>$east</east>
         <west>$west</west>
     </LatLonBox>
@@ -105,14 +100,8 @@ sub CreateSingleKML
 
 sub CreateMultipleKML
 {
-	$north_latlon = $north;
-	$south_latlon = $south;
-	if ($wmsclient eq "ArcGIS" && $region eq "Australia") # These come from the web page
-	{
-		# The latitude values must be corrected by 1 degree north. It is an anomaly in ArcGIS
-		$north_latlon++;
-		$south_latlon++;
-	}
+	$north_adjusted = $north+$offset;
+	$south_adjusted = $south+$offset;
 	# For the GEOGLAM Tiles. Called from geoglam.html as below.
 	$visibility = 1; # Set this to 0 after the first layer. 
 	my @times = split(/,/, $time);
@@ -135,113 +124,6 @@ $groundOverlay
 </Document>
 </kml>
 	";
-}
-sub Folder_groundOverlay
-{
-	my $action = $_[0];
-	my $title = $_[1];
-	my $bbox0 = $_[2];
-	if($bbox0) { $bbox = $bbox0; }
-	if ($action == 1)
-	{
-		my @fields = split(/,/,$bbox);
-		my $west = $fields[0];
-		my $south = $fields[1];
-		my $east = $fields[2];
-		my $north = $fields[3];
-		my $x = ($east+$west)/2.0;
-		my $y = ($north+$south)/2.0;
-		my $eye = abs($south - $north)*120*1000;
-		my $eye1 = abs($east - $west)*120*1000;
-		if ($eye1 > $eye) { $eye = $eye1; } 
-		$groundOverlay .= "<Folder>
-<visibility>$visibility</visibility>
-<name>$title</name>
-<LookAt>
-	<longitude>$x</longitude>
-	<latitude>$y</latitude>
-	<altitude>$eye</altitude>
-</LookAt>
-";
-	}
-	if ($action == 2)
-	{
-		$groundOverlay .= "</Folder>";
-	}
-}
-sub CountTheTilesLow 
-{
-	my $w = $_[0];
-	my $s = $_[1];
-	my $e = $_[2];
-	my $n = $_[3];
-	my $r = $_[4];
-	my $layer = $_[5];
-	my $time = $_[6];
-	$time =~ s/T.*$//gi;
-	my $i=$resolution; # Number of degrees for tile axis
-	$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
-	$s -= $s % $i; 
-	$e -= $e % $i; 
-	$n -= $n % $i; 
-	if ($w == $e) { $e+=$i; }
-	if ($s == $n) { $n+=$i; }
-	for (my $j = $w; $j < $e; $j+=$r)
-	{
-		for (my $k = $s; $k < $n; $k+=$r)
-		{
-			$w1 = sprintf("%.1f", $j); 
-			$s1 = sprintf("%.1f", $k);
-			$e1 = sprintf("%.1f", $j+$r);
-			$n1 = sprintf("%.1f", $k+$r);
-			$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-			$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-			$tileurl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/" . $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-			if (!-f $tile_file)
-			{
-				if (!$create_tiles)
-				{
-					next;
-				}
-			}
-			$n_tiles++;
-			if($n1 >= $n) { last; }
-		}
-	}
-}
-sub GroundOverlayTiles
-{
-	# Called from DEA alone
-	my $n_tiles = $_[0];
-	my $title = $_[1];
-	my $x = ($east+$west)/2.0;
-	my $y = ($north+$south)/2.0;
-	my $eye = abs($south - $north)*120*1000;
-	my $eye1 = abs($east - $west)*120*1000;
-	if ($eye1 > $eye) { $eye = $eye1; } 
-	$lookAt = "<LookAt> 
-		<longitude>$x</longitude>
-		<latitude>$y</latitude>
-		<altitude>$eye</altitude>
-	</LookAt>";
-	# To create the multi "GroundOverlay" KML for displaying the DEA tiles
-	$groundOverlay .= "
-<GroundOverlay>
-	<name>$title</name>
-	<visibility>1</visibility>
-	<Icon>
-		<href>
-			$tileUrl
-		</href>
-	</Icon>
-	<LatLonBox>
-		<west>$west</west>
-		<south>$south</south>
-		<east>$east</east>
-		<north>$north</north>
-	</LatLonBox>
-</GroundOverlay>
-";
 }
 sub do_main
 {
@@ -338,100 +220,13 @@ sub do_main
 				}
 				$title = $region . "_" . $basetitle . " " . $date;
 				CreateSingleKML;
-				$outfile = $region . "_" . $basetitle . "_" . $$ . "_" . $date . ".kml";
+				$outfile = $region . "_" . $basetitle . "_" . $$ . ".kml";
 				$outfile =~ s/ /_/gi;
 				open (OUT, ">$kmlDir/$outfile");
 				print OUT $kml;
 				close(OUT);
 				print "<small><a href=\"$url/$outfile\">$outfile</a></small>";
 			}
-			exit;
-		}
-		if ($sc_action eq "DEA")
-		{
-			# To create the DEA tiles. Called from dea.html as below.
-			# <input type="button" value="Create KML" style="color:blue" onclick="ValidateInput(document.forms.google_earth,2);">
-			print "Content-type: text/html\n\n"; $headerAdded = 1;
-			$pquery = reformat($ARGV[2]);
-			$pquery =~ s/\\//gi;
-			Get_fields;	# Parse the $pquery to get all form input values
-			my $r = $resolution;
-			my @fields = split (/\|/, $layer);
-			my $layer = $fields[0];
-			my $title = $fields[1];
-			my $basetitle = $title;
-			my $i=$resolution; # Number of degrees for tile axis
-			if ($i < 1)
-			{
-#				DEA_High($layer, $title);
-			}
-			@bbox = split(/,/, $bbox); # $bbox is global, coming from the HTML page
-			my $w = int($bbox[0]);
-			my $s = int($bbox[1]);
-			my $e = int($bbox[2]);
-			my $n = int($bbox[3]);
-			# The w,s,e,n values must match the tiles created for this resolution
-			# The Lon/Lat values must be divisible with the value of resolution.
-			# For example, the 2x2 degree tiles will use even numbers for both Lon and Lat. e.g. 110,-44,112,-42; 112,-42,114,-40;
-			# The 3x3 tiles will use multiples of 3. e.g. 111,-45,114,-42; 111,-42,114,-39
-			$w -= $w % $i; # e.g. 11%3 = 2. 11-2=9; 9%3 = 0
-			$s -= $s % $i; 
-			$e -= $e % $i; 
-			$n -= $n % $i; 
-			if ($w == $e) { $e+=$i; }
-			if ($s == $n) { $n+=$i; }
-			$bbox0 = "$w,$s,$e,$n"; # Recalculatd bbox for the tiles.
-			$visibility = 1;
-			$groundOverlay = "<!-- Start of GroundOverlays -->\n\t";
-			Folder_groundOverlay(1,$title,$bbox0); # Start of grouping the "GroundOverlays" in a Folder
-			$n_tiles = 0;
-			my @times = split(/,/,$time);
-			foreach $time(@times)
-			{
-				$time =~ s/T.*$//gi;
-				CountTheTilesLow($w,$s,$e,$n,$i,$layer,$time);
-				for (my $j = $w; $j < $e; $j+=$i)
-				{
-					for (my $k = $s; $k < $n; $k+=$i)
-					{
-						$w1 = sprintf("%.1f", $j); 
-						$s1 = sprintf("%.1f", $k);
-						$e1 = sprintf("%.1f", $j+$i);
-						$n1 = sprintf("%.1f", $k+$i);
-						$tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-						$tile_file = "$basedir/$layer/$time/$r/$tile_filename";
-						if (!$create_tiles && !-f $tile_file)
-						{
-							next;
-						}
-						$tileUrl = "$cgi?PNG+$w1+$s1+$e1+$n1+$time+$i";
-						$west = $w1;
-						$south = $s1;
-						$east = $e1;
-						$north = $n1;
-						$gskyUrl = "http://$domain/GEWeb/DEA_Layers/$layer/$time/$r/$west" . "_" . $south . "_" . $east . "_" . $north . "_" . $time . "_" . $r . ".png";
-						if ($callGsky)
-						{
-							$tileUrl = $gskyUrl;
-							$tileUrl =~ s/&/&amp;/gi;
-						}
-						$title = "$time: $w1,$s1";
-						GroundOverlayTiles($n_tiles,$title);
-						$visibility = 0;
-						if($n1 == $n) { last; }
-					}
-				}
-			}
-			&debug("Number of tiles: <big>$n_tiles</big>");
-			if ($n_tiles <= 0)
-			{
-				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
-			}
-			Folder_groundOverlay(2); # End the Group the "GroundOverlays" in a Folder
-			$groundOverlay .= "\n\t<!-- End of GroundOverlays -->";
-			$kml = "$groundOverlay";
-			$outfile = "DEA_" . $layer . "_" . $time . "_" . $$ . ".kml";
-			$outfile =~ s/ /_/gi;
 			exit;
 		}
 		else
