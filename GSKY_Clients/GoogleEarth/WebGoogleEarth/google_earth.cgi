@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 # Created on 31 Mar, 2019
-# Last edit: 3 Apr, 2019
+# Last edit: 2 Mar, 2020
 # By Dr. Arapaut V. Sivaprasad
 =pod
 This CGI is for creating the KMLs for displaying the GSKY layers via Google Earth Web.
 See http://www.webgenie.com/WebGoogleEarth/
 =cut
 # -----------------------------------
-require "common.pl";
+require "/var/www/cgi-bin/common.pl";
 sub reformat
 {
   local($tmp) = $_[0] ;
@@ -97,7 +97,7 @@ sub GroundOverlay
     <visibility>$visibility</visibility>
     <Icon>
         <href>
-            http://130.56.242.15/ows/ge?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
+            $gskyUrl?SERVICE=WMS&amp;BBOX=$west,$south,$east,$north&amp;$time&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png
         </href>
         <viewRefreshMode>onStop</viewRefreshMode>
         <viewBoundScale>0.75</viewBoundScale>
@@ -123,7 +123,7 @@ sub CreateSingleKML
     <visibility>1</visibility>
     <Icon>
         <href>
-            http://130.56.242.15/ows/ge?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=default&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
+            $gskyUrl?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;WIDTH=512&amp;HEIGHT=512&amp;LAYERS=$layer&amp;STYLES=&amp;TRANSPARENT=TRUE&amp;FORMAT=image/png&amp;BBOX=$west,$south,$east,$north&amp;$time
         </href>
         <viewRefreshMode>onStop</viewRefreshMode>
         <viewBoundScale>0.75</viewBoundScale>
@@ -386,7 +386,7 @@ sub do_main
 			&debug("Actual number of tiles: <big>$n_tiles</big>");
 			if ($n_tiles <= 0)
 			{
-				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
+				&debug("<font style=\"color:red; font-size:12px\">A. No tiles in the selected region. Please choose another region.</font>");
 			}
 #			if ($n_tiles > 300)
 #			{
@@ -407,7 +407,7 @@ sub do_main
 			my $s = $_[1];
 			my $e = $_[2];
 			my $n = $_[3];
-			my $r = 0.1;
+			my $r = $resolution;
 			my $m = int(1/$r);
 			GetTheLargeTile($w,$s,$e,$n,$r); # Find the 3x3 tile that covers this bbox
 			my $n_tiles = 0;
@@ -418,13 +418,13 @@ sub do_main
 				{
 					$fin = 0;
 					my $k = $k0/$m;
-					my $w1 = sprintf("%.1f", $j); 
-					my $s1 = sprintf("%.1f", $k);
-					my $e1 = sprintf("%.1f", $j+$r);
-					my $n1 = sprintf("%.1f", $k+$r);
+					my $w1 = sprintf("%.2f", $j); 
+					my $s1 = sprintf("%.2f", $k);
+					my $e1 = sprintf("%.2f", $j+$r);
+					my $n1 = sprintf("%.2f", $k+$r);
 					my $this_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
 					my $tile_filename = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1 . "_" . $time . "_$r" . ".png";
-					GetHash($tile_filename,0.1,$r);
+					GetHash($tile_filename,$resolution,$r);
 					if ($tilesHash{$this_tile}) # %tilesHash is global
 					{
 						$n_tiles++;
@@ -434,7 +434,7 @@ sub do_main
 			&debug("Actual number of tiles: <big>$n_tiles</big>");
 			if ($n_tiles <= 0)
 			{
-				&debug("<font style=\"color:red; font-size:12px\">No tiles in the selected region. Please choose another region.</font>");
+				&debug("<font style=\"color:red; font-size:12px\">B. No tiles in the selected region. Please choose another region.</font>");
 			}
 
 #			if ($n_tiles > 50 && $n_tiles <= 100)
@@ -473,6 +473,7 @@ sub do_main
 ";
 #p("$pmx, $pmy");	
 			my $ct0 = time();
+#p("			CountTheTiles($w,$s,$e,$n);");
 			CountTheTiles($w,$s,$e,$n);
 			my @keys = sort keys %tilesHash;
 			my $n_tiles = 0;
@@ -795,7 +796,7 @@ $groundOverlay
 						$ii++;
 						$tilesHash{$sub_tile} = 0; 
 					}
-					if ($rl == 0.1) 
+					if ($rl == $resolution) 
 					{ 
 						$ii++;
 						$tilesHash{$sub_tile} = 1; 
@@ -814,17 +815,19 @@ $groundOverlay
 			my $s = int($bbox[1] * $m);
 			my $ee = int($bbox[2] * $m);
 			my $n = int($bbox[3] * $m);
+#p("			for (my $j0 = $w; $j0 < $ee; $j0++)");
 			for (my $j0 = $w; $j0 < $ee; $j0++)
 			{
 				my $j = $j0/$m;
 				for (my $k0 = $s; $k0 < $n; $k0++)
 				{
 					my $k = $k0/$m;
-					my $w1 = sprintf("%.1f", $j); 
-					my $s1 = sprintf("%.1f", $k);
-					my $e1 = sprintf("%.1f", $j+$r);
-					my $n1 = sprintf("%.1f", $k+$r);
+					my $w1 = sprintf("%.2f", $j); 
+					my $s1 = sprintf("%.2f", $k);
+					my $e1 = sprintf("%.2f", $j+$r);
+					my $n1 = sprintf("%.2f", $k+$r);
 					my $sub_tile = $w1 . "_" . $s1 . "_" . $e1 . "_" . $n1;
+#p("sub_tile = $sub_tile");
 					$tilesHash{$sub_tile} = 1; 
 					if($n1 >= $n) { last; }
 				}
@@ -863,6 +866,36 @@ $groundOverlay
 				print "Could not find any process to kill.\n";
 			}
 		}
+		if ($sc_action eq "Purge")
+		{
+			# To purge daily the high res tiles
+			chdir ($basedir);
+			$dir1 = `ls -FR | grep "/0.1"`;
+			$dir2 = `ls -FR | grep "/0.02"`;
+			$dirs = $dir1 . $dir2;
+			@dirs = split(/\n/, $dirs);
+			open(OUT, ">>/var/www/cgi-bin/google_earth_cgi_Purge.log");
+			print OUT "------------------------------------------------------------\n$ProcessTime\n";
+			foreach $dir (@dirs)
+			{
+				$dir =~ s/://g;
+				chdir ("$dir");
+				$pwd = `pwd`;
+				print OUT "$pwd";
+				@dir = split(/\//, $pwd);
+				$n = $#dir + 1;
+				if ($n != 7) { next; } # /local/GEWeb/DEA_Layers/landsat5_geomedian/1997-01-01/0.1
+				$png = `ls -1 *.png | wc -l`;
+				$png =~ s/\n//g;
+				if ($png) 
+				{ 
+					print OUT "**** Deleting PNG files: $png\n"; 
+				}
+				`rm *.png`;
+				chdir ($basedir);
+			}
+			close(OUT);
+		}
 		
 		else
 		{
@@ -874,6 +907,7 @@ $|=1;
 #$domain = "webgenie.com";
 $domain = $ENV{HTTP_HOST};
 $ows_domain = "130.56.242.15";
+$gskyUrl = "https://gsky.nci.org.au/ows/geoglam";
 $docroot = $ENV{DOCUMENT_ROOT};
 if (!$docroot) { $docroot = "/var/www/html"; }
 $cgi = "http://$domain/cgi-bin/google_earth.cgi"; # On VM19
@@ -890,6 +924,7 @@ $layer = "landsat8_nbart_16day";
 $title = "DEA Landsat 8 surface reflectance true colour";
 $callGsky = 1; # Use GetMap calls to GSKY instead of using the PNG files at high res
 $ct0 = time();
+$ProcessTime = `/bin/date`; $ProcessTime =~ s/\n//g ;
 &do_main;
 =pod
 Cache location: C:\Users\avs29\AppData\Local\Google\Chrome\User Data\Default\Cache
